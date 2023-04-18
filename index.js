@@ -7,7 +7,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 
-const appRoute = require('./src/routes/survei-routes');
+const appRoute = require('./routes/routes');
 app.use('/', appRoute);
 
 app.listen(8000, () => console.log('App running on port : 8000'));
