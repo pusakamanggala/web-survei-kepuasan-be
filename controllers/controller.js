@@ -2,6 +2,7 @@ const config = require('../connection/mysql_connection');
 const mysql = require('mysql2');
 const pool = mysql.createPool(config);
 const lib = require('./lib')
+const excelToJson = require('convert-excel-to-json')
 
 pool.on('error', (err) => {
     console.log(err)
@@ -139,6 +140,147 @@ module.exports = {
                     success: true,
                     message: 'Fetch data successfully',
                     data: result
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    bulkInsertDosen(req, res) {
+        if (req.file?.filename == null || req.file?.filename === undefined) {
+            return res.status(400).json({
+                succes: false,
+                message: "no file"
+            })
+        }
+
+        const filePath = "uploads/" + req.file.filename
+
+        const excelData = excelToJson({
+            sourceFile: filePath,
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                "*": "{{columnHeader}}"
+            }
+        })
+
+        const query = lib.generateBulkQueryDosen(excelData.Sheet1)
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    bulkInsertAlumni(req, res) {
+        if (req.file?.filename == null || req.file?.filename === undefined) {
+            return res.status(400).json({
+                succes: false,
+                message: "no file"
+            })
+        }
+
+        const filePath = "uploads/" + req.file.filename
+
+        const excelData = excelToJson({
+            sourceFile: filePath,
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                "*": "{{columnHeader}}"
+            }
+        })
+
+        const query = lib.generateBulkQueryAlumni(excelData.Sheet1)
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    bulkInsertMahasiswa(req, res) {
+        if (req.file?.filename == null || req.file?.filename === undefined) {
+            return res.status(400).json({
+                succes: false,
+                message: "no file"
+            })
+        }
+
+        const filePath = "uploads/" + req.file.filename
+
+        const excelData = excelToJson({
+            sourceFile: filePath,
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                "*": "{{columnHeader}}"
+            }
+        })
+
+        const query = lib.generateBulkQueryMahasiswa(excelData.Sheet1)
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
                 })
             })
 
