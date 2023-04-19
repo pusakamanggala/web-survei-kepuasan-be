@@ -26,7 +26,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nip FROM dosen WHERE nip = ?';
+            const query = 'SELECT nama, nip, telepon FROM dosen WHERE nip = ?';
             connection.query(query, [id], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -78,7 +78,7 @@ module.exports = {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = 'SELECT nama, nip FROM dosen';
+            const query = 'SELECT nama, nip, telepon FROM dosen';
             const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
             connection.query(queryWithPaging, function (err, result) {
                 if (err) {
@@ -337,7 +337,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nim, angkatan, status FROM mahasiswa WHERE nim = ? ';
+            const query = 'SELECT nama, nim, angkatan, status, telepon FROM mahasiswa WHERE nim = ? ';
             connection.query(query, [id], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -399,7 +399,7 @@ module.exports = {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
+            const query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
             connection.query(query, [orderBy, sortBy], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -568,7 +568,7 @@ module.exports = {
                 })
             };
 
-            const query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, tahun_kelulusan", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
+            const query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, tahun_kelulusan, telepon", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
             connection.query(query, [orderBy, sortBy], function (err, result) {
                 if (err) {
                     return res.status(500).json({
