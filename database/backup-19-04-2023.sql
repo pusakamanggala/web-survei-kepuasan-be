@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 18 Apr 2023 pada 20.06
+-- Waktu pembuatan: 19 Apr 2023 pada 17.01
 -- Versi server: 10.6.12-MariaDB
 -- Versi PHP: 8.1.16
 
@@ -132,8 +132,19 @@ CREATE TABLE `kelas` (
   `id_kelas` varchar(20) NOT NULL,
   `id_dosen` varchar(20) NOT NULL,
   `id_matkul` varchar(20) NOT NULL,
-  `nama_kelas` varchar(50) NOT NULL
+  `nama_kelas` varchar(50) NOT NULL,
+  `start_date` bigint(20) NOT NULL,
+  `end_date` bigint(20) NOT NULL,
+  `nama_dosen` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data untuk tabel `kelas`
+--
+
+INSERT INTO `kelas` (`id_kelas`, `id_dosen`, `id_matkul`, `nama_kelas`, `start_date`, `end_date`, `nama_dosen`) VALUES
+('aJ99r6nBzJY190j1c5nO', '1023809', 'Qs9OPwh1jusKxMdIdw7K', 'Kalkulus - A', 1681895016, 1689732350, 'karina'),
+('jxPW9D9Emsad1kVeTVP3', '1023809', 'DUFlc4ITQLZUVwFgPLXM', 'ProgWeb - A', 1681897977, 1689732350, 'karina');
 
 -- --------------------------------------------------------
 
@@ -143,9 +154,19 @@ CREATE TABLE `kelas` (
 
 CREATE TABLE `kontrak_matkul` (
   `id_kontrak` varchar(20) NOT NULL,
-  `id_matkul` varchar(20) NOT NULL,
-  `id_kelas` varchar(20) NOT NULL
+  `id_kelas` varchar(20) NOT NULL,
+  `id_mahasiswa` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data untuk tabel `kontrak_matkul`
+--
+
+INSERT INTO `kontrak_matkul` (`id_kontrak`, `id_kelas`, `id_mahasiswa`) VALUES
+('gZu4OyTWfVXOgjsUSXd1', 'aJ99r6nBzJY190j1c5nO', '10293809'),
+('MR1iWVt0gQu4WmB116ZR', 'jxPW9D9Emsad1kVeTVP3', '10293809'),
+('uLEv8dJgKyiMb5SMzDNW', 'aJ99r6nBzJY190j1c5nO', '192837'),
+('WhBdw7gzpmUJqC5uoLmv', 'jxPW9D9Emsad1kVeTVP3', '192837');
 
 -- --------------------------------------------------------
 
@@ -196,9 +217,16 @@ CREATE TABLE `mahasiswa_session` (
 
 CREATE TABLE `mata_kuliah` (
   `id_matkul` varchar(20) NOT NULL,
-  `id_dosen` varchar(20) NOT NULL,
   `nama_matkul` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data untuk tabel `mata_kuliah`
+--
+
+INSERT INTO `mata_kuliah` (`id_matkul`, `nama_matkul`) VALUES
+('DUFlc4ITQLZUVwFgPLXM', 'Pemrograman Web'),
+('Qs9OPwh1jusKxMdIdw7K', 'Kalkulus');
 
 -- --------------------------------------------------------
 
@@ -375,7 +403,7 @@ ALTER TABLE `kelas`
 ALTER TABLE `kontrak_matkul`
   ADD PRIMARY KEY (`id_kontrak`),
   ADD KEY `id_kelas` (`id_kelas`),
-  ADD KEY `id_matkul` (`id_matkul`);
+  ADD KEY `id_mahasiswa` (`id_mahasiswa`);
 
 --
 -- Indeks untuk tabel `mahasiswa`
@@ -394,8 +422,7 @@ ALTER TABLE `mahasiswa_session`
 -- Indeks untuk tabel `mata_kuliah`
 --
 ALTER TABLE `mata_kuliah`
-  ADD PRIMARY KEY (`id_matkul`),
-  ADD KEY `id_dosen` (`id_dosen`);
+  ADD PRIMARY KEY (`id_matkul`);
 
 --
 -- Indeks untuk tabel `opsi_pertanyaan`
@@ -507,19 +534,13 @@ ALTER TABLE `kelas`
 --
 ALTER TABLE `kontrak_matkul`
   ADD CONSTRAINT `kontrak_matkul_ibfk_1` FOREIGN KEY (`id_kelas`) REFERENCES `kelas` (`id_kelas`),
-  ADD CONSTRAINT `kontrak_matkul_ibfk_2` FOREIGN KEY (`id_matkul`) REFERENCES `mata_kuliah` (`id_matkul`);
+  ADD CONSTRAINT `kontrak_matkul_ibfk_3` FOREIGN KEY (`id_mahasiswa`) REFERENCES `mahasiswa` (`nim`);
 
 --
 -- Ketidakleluasaan untuk tabel `mahasiswa_session`
 --
 ALTER TABLE `mahasiswa_session`
   ADD CONSTRAINT `mahasiswa_session_ibfk_1` FOREIGN KEY (`id_mahasiswa`) REFERENCES `mahasiswa` (`nim`);
-
---
--- Ketidakleluasaan untuk tabel `mata_kuliah`
---
-ALTER TABLE `mata_kuliah`
-  ADD CONSTRAINT `mata_kuliah_ibfk_1` FOREIGN KEY (`id_dosen`) REFERENCES `dosen` (`nip`);
 
 --
 -- Ketidakleluasaan untuk tabel `opsi_pertanyaan`
