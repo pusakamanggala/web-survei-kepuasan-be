@@ -39,5 +39,12 @@ router.get('/alumni', survei.getAllAlumni) // &sortBy=angkatan/semester&orderBy=
 router.post('/alumni/bulk', upload.single('file'), survei.bulkInsertAlumni)
 router.post('/alumni', survei.newAlumni) // new alumni 
 
+router.post('/matkul', survei.newMatkul)
+router.post('/kelas', survei.newKelas)
+router.post('/insert-mahasiswa', survei.addMahasiswaToKelas) // add mahasiswa ke kelas
+
+router.get('/kelas/:id', survei.getKelasWithId) // detail kelas (mahasiwa, dosen, matkul)
+router.get('/kelas', survei.getAllKelas)
+
 module.exports = router;
 

@@ -595,4 +595,202 @@ module.exports = {
             connection.release();
         })
     },
+
+    newMatkul(req, res) {
+        let { namaMataKuliah } = req.body
+        const newId = lib.generateRandomString(20)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = 'INSERT INTO mata_kuliah (id_matkul, nama_matkul) VALUES (?, ?)';
+            connection.query(query, [newId, namaMataKuliah], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: {
+                        id: newId,
+                        namaMataKuliah: namaMataKuliah
+                    }
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    newKelas(req, res) {
+        let { idDosen, idMatkul, namaKelas, endDate, namaDosen } = req.body
+        const newId = lib.generateRandomString(20)
+        const startDate = lib.getCurrentUnixTimeStamp(Date.now())
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = 'INSERT INTO kelas (id_kelas, id_dosen, id_matkul, nama_kelas, start_date, end_date, nama_dosen) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            connection.query(query, [newId, idDosen, idMatkul, namaKelas, startDate, parseInt(endDate), namaDosen], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: {
+                        idKelas: newId,
+                        idMatkul: idMatkul,
+                        idDosne: idDosen,
+                        namaKelas: namaKelas,
+                        startDate: startDate,
+                        endDate: endDate,
+                    }
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    addMahasiswaToKelas(req, res) {
+        let { idKelas, idMahasiswa } = req.body
+        const newId = lib.generateRandomString(20)
+
+        const query = lib.generateBulkQueryAddMahasiswaToKelas(idKelas, idMahasiswa)
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: {
+                        idKelas: idKelas,
+                        idMahasiswa: idMahasiswa
+                    }
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getKelasWithId(req, res) {
+        const id = req.params.id
+
+        const query = "select kelas.id_kelas, kelas.nama_kelas, kelas.nama_dosen, kelas.start_date, kelas.end_date, mata_kuliah.id_matkul, mata_kuliah.nama_matkul, mahasiswa.nim, mahasiswa.nama FROM kelas JOIN mata_kuliah ON kelas.id_matkul = mata_kuliah.id_matkul JOIN kontrak_matkul ON kontrak_matkul.id_kelas = kelas.id_kelas JOIN mahasiswa ON mahasiswa.nim = kontrak_matkul.id_mahasiswa WHERE kelas.id_kelas = ?"
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, [id], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: lib.parsingGetKelasQueryResult(result)
+                })
+            })
+
+            connection.release();
+        })
+
+    },
+
+    getAllKelas(req, res) {
+        let limit = req.query.limit
+        let page = req.query.page
+
+        if (limit === undefined) {
+            limit = DEFAULT_LIMIT
+        }
+
+        if (page === undefined) {
+            page = DEFAULT_PAGE
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            let totalRecords = 0
+            connection.query("select count(*) from kelas", function (err, res) {
+                totalRecords = parseInt(res[0]["count(*)"])
+            })
+
+            const query = 'SELECT id_kelas, nama_kelas, nama_dosen FROM kelas ';
+            const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
+            connection.query(queryWithPaging, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result,
+                    totalRecords: totalRecords,
+                    totalPage: Math.ceil(totalRecords / limit)
+                })
+            })
+
+            connection.release();
+        })
+    }
 }

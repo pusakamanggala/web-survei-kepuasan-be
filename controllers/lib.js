@@ -73,5 +73,64 @@ module.exports = {
         });
 
         return query
+    },
+
+    generateRandomString(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
+        }
+        return result;
+    },
+
+    getCurrentUnixTimeStamp(date) {
+        return Math.floor(Date.now() / 1000);
+    },
+
+    generateBulkQueryAddMahasiswaToKelas(idKelas, idMahasiswa) {
+        let query = "INSERT INTO kontrak_matkul (id_kontrak, id_kelas, id_mahasiswa) VALUES "
+        idMahasiswa.forEach((element, index) => {
+            const value = (index === idMahasiswa.length - 1) ? `('${this.generateRandomString(20)}', '${idKelas}', '${element}')` : `('${this.generateRandomString(20)}', '${idKelas}', '${element}'), `
+            query += value
+        })
+
+        return query
+    },
+
+    // {
+    //     id_kelas: 'aJ99r6nBzJY190j1c5nO',
+    //     nama_kelas: 'Kalkulus - A',
+    //     nama_dosen: 'karina',
+    //     start_date: 1681895016,
+    //     end_date: 1689732350,
+    //     id_matkul: 'Qs9OPwh1jusKxMdIdw7K',
+    //     nama_matkul: 'Kalkulus',
+    //     nim: '192837',
+    //     nama: 'roni'
+    //   }
+
+    parsingGetKelasQueryResult(result) {
+
+        let obj = {
+            idKelas: result[0].id_kelas,
+            namaKelas: result[0].nama_kelas,
+            namaDosen: result[0].nama_dosen,
+            StartDate: result[0].start_date,
+            endDate: result[0].end_date,
+            idMatkul: result[0].id_matkul,
+            namaMatkul: result[0].nama_matkul,
+            mahasiswa: result.map(e => {
+                return {
+                    nim: e.nim,
+                    nama: e.nama
+                }
+            })
+        }
+
+        return obj
     }
 }
