@@ -46,5 +46,7 @@ router.post('/insert-mahasiswa', survei.addMahasiswaToKelas) // add mahasiswa ke
 router.get('/kelas/:id', survei.getKelasWithId) // detail kelas (mahasiwa, dosen, matkul)
 router.get('/kelas', survei.getAllKelas)
 
+router.get('/matkul/suggest', survei.getMatkulWithSuggest)
+
 module.exports = router;
 

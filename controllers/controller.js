@@ -792,5 +792,44 @@ module.exports = {
 
             connection.release();
         })
+    },
+
+    getMatkulWithSuggest(req, res) {
+        // get query params
+        const queryPayload = lib.getLikeQuery(req.query.query)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = "SELECT id_matkul, nama_matkul FROM mata_kuliah where nama_matkul LIKE ?"
+            connection.query(query, [queryPayload], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result
+                })
+            })
+
+            connection.release();
+        })
     }
 }
