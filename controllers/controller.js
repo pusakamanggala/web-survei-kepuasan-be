@@ -337,7 +337,46 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nim, angkatan, status, telepon FROM mahasiswa WHERE nim = ? ';
+            const query = 'SELECT nama, nim, angkatan, status, telepon FROM mahasiswa WHERE nim = ? and status="AKTIF"';
+            connection.query(query, [id], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that id'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result[0]
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getAlumniById(req, res) {
+        // read path id
+        const id = req.params.id
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = 'SELECT nama, nim, angkatan, telepon FROM mahasiswa WHERE nim = ? and status="ALUMNI"';
             connection.query(query, [id], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -396,7 +435,7 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from mahasiswa", function (err, res) {
+            connection.query("select count(*) from mahasiswa where status='aktif'", function (err, res) {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
@@ -581,9 +620,9 @@ module.exports = {
             let query = ""
 
             if (angkatan !== undefined) {
-                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
             } else {
-                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
             }
 
             connection.query(query, [orderBy, sortBy], function (err, result) {

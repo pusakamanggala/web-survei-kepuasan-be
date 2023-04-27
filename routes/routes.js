@@ -36,6 +36,7 @@ router.post('/mahasiswa/bulk', upload.single('file'), survei.bulkInsertMahasiswa
 router.post('/mahasiswa', survei.newMahasiswa) // new mahasiswa
 
 router.get('/alumni/suggest', survei.getAlumniWithSuggest) // get alumni with suggest ?query=
+router.get('/alumni/:id', survei.getAlumniById) // get mahasiswa by id
 router.get('/alumni', survei.getAllAlumni) // &sortBy=angkatan/semester&orderBy=asc/desc
 router.post('/alumni/bulk', upload.single('file'), survei.bulkInsertAlumni)
 router.post('/alumni', survei.newAlumni) // new alumni 
