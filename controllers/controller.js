@@ -369,6 +369,7 @@ module.exports = {
         let orderBy = req.query.orderBy
         let limit = req.query.limit
         let page = req.query.page
+        let angkatan = req.query.angkatan
 
         if (sortBy === undefined) {
             sortBy = DEFAULT_SORT
@@ -399,7 +400,15 @@ module.exports = {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
+
+            let query = ""
+
+            if (angkatan !== undefined) {
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
+            } else {
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
+            }
+
             connection.query(query, [orderBy, sortBy], function (err, result) {
                 if (err) {
                     return res.status(500).json({
