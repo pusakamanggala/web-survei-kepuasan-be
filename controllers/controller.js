@@ -634,7 +634,7 @@ module.exports = {
     newKelas(req, res) {
         let { idDosen, idMatkul, namaKelas, endDate, namaDosen } = req.body
         const newId = lib.generateRandomString(20)
-        const startDate = lib.getCurrentUnixTimeStamp(Date.now())
+        const startDate = lib.getCurrentUnixTimeStamp()
 
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -739,6 +739,46 @@ module.exports = {
 
     },
 
+    getKelasWithSuggest(req, res) {
+        // get query params
+        const queryPayload = lib.getLikeQuery(req.query.query)
+
+        const now = lib.getCurrentUnixTimeStamp()
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = "SELECT id_kelas, nama_kelas, nama_dosen FROM kelas WHERE nama_kelas LIKE ? AND ? > start_date AND ? < end_date"
+            connection.query(query, [queryPayload, now, now], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result
+                })
+            })
+
+            connection.release();
+        })
+    },
+
     getAllKelas(req, res) {
         let limit = req.query.limit
         let page = req.query.page
@@ -750,6 +790,8 @@ module.exports = {
         if (page === undefined) {
             page = DEFAULT_PAGE
         }
+
+        const now = lib.getCurrentUnixTimeStamp()
 
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -764,9 +806,9 @@ module.exports = {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = 'SELECT id_kelas, nama_kelas, nama_dosen FROM kelas ';
+            const query = 'SELECT id_kelas, nama_kelas, nama_dosen FROM kelas WHERE ? > start_date AND ? < end_date';
             const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
-            connection.query(queryWithPaging, function (err, result) {
+            connection.query(queryWithPaging, [now, now], function (err, result) {
                 if (err) {
                     return res.status(500).json({
                         success: false,
@@ -831,5 +873,438 @@ module.exports = {
 
             connection.release();
         })
-    }
+    },
+
+    getAlumniWithSuggest(req, res) {
+        // get query params
+        const queryPayload = lib.getLikeQuery(req.query.query)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = "SELECT nama, nim FROM mahasiswa where nama LIKE ? and status = 'ALUMNI'"
+            connection.query(query, [queryPayload], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getTotalRecord(req, res) {
+        const queryPayload = req.query.entity
+
+        let queryDB
+        switch (queryPayload) {
+            case 'alumni':
+                queryDB = `select count(*) from mahasiswa where status = 'ALUMNI'`
+                break;
+            case 'dosen':
+                queryDB = `select count(*) from dosen where status = 'AKTIF'`
+                break;
+            default:
+                queryDB = `select count(*) from mahasiswa where status = 'AKTIF'`
+                break;
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            let totalRecords = 0
+            connection.query(queryDB, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+                totalRecords = parseInt(result[0]['count(*)'])
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: totalRecords,
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getSurvey(req, res) {
+        const role = req.query.role
+        const currentTimestamp = lib.getCurrentUnixTimeStamp()
+
+        const query = lib.generateQueryForGetSurvey(role.toLowerCase(), currentTimestamp, currentTimestamp)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            let options = []
+
+            // get option
+            connection.query("SELECT id_opsi, opsi from opsi_pertanyaan", function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                options = result
+            })
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: lib.parsingSurveyResult(options, result, role.toLowerCase()),
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    newSurveyQuestion(req, res) {
+        let { payload } = req.body
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = lib.generateBulkQueryForNewQuestion(payload)
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: payload
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    newSurvey(req, res) {
+        let { idTemplate, judulSurvei, detailSurvei, periode, startDate, endDate, role, idKelas } = req.body
+
+        const newSurveyId = lib.generateRandomString(20)
+        let query = ""
+        switch (role.toLowerCase()) {
+            case 'dosen':
+                query = "INSERT INTO survei_dosen (id_survei_mahasiswa, id_template, id_kelas, judul_survei, detail_survei, start_date, end_date, periode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+
+                pool.getConnection(function (err, connection) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    connection.query(query, [newSurveyId, idTemplate, judulSurvei, detailSurvei, periode, startDate, endDate, role], function (err, result) {
+                        if (err) {
+                            return res.status(500).json({
+                                success: false,
+                                message: err
+                            })
+                        };
+
+                        return res.send({
+                            success: true,
+                            message: 'Your record has been saved successfully',
+                            data: {
+                                idSurvei: newSurveyId,
+                                idTemplate: idTemplate,
+                                judulSurvei: judulSurvei,
+                                detailSurvei: detailSurvei,
+                                periode: periode,
+                                startDate: startDate,
+                                endDate: endDate,
+                                role: role
+                            }
+                        })
+                    })
+                })
+                break;
+            case 'mahasiswa':
+                query = "INSERT INTO survei_mahasiswa (id_survei_mahasiswa, id_template, id_kelas, judul_survei, detail_survei, start_date, end_date, periode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                pool.getConnection(function (err, connection) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    connection.query(query, [newSurveyId, idTemplate, idKelas, judulSurvei, detailSurvei, startDate, endDate, periode], function (err, result) {
+                        if (err) {
+                            return res.status(500).json({
+                                success: false,
+                                message: err
+                            })
+                        };
+
+                        return res.send({
+                            success: true,
+                            message: 'Your record has been saved successfully',
+                            data: {
+                                idSurvei: newSurveyId,
+                                idTemplate: idTemplate,
+                                judulSurvei: judulSurvei,
+                                detailSurvei: detailSurvei,
+                                periode: periode,
+                                startDate: startDate,
+                                endDate: endDate,
+                                idKelas: idKelas
+                            }
+                        })
+                    })
+                })
+                break;
+            case 'alumni':
+                query = "INSERT INTO survei_alumni (id_survei_alumni, id_template, judul_survei, detail_survei, start_date, end_date, periode) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                pool.getConnection(function (err, connection) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    connection.query(query, [newSurveyId, idTemplate, judulSurvei, detailSurvei, startDate, endDate, periode], function (err, result) {
+                        if (err) {
+                            return res.status(500).json({
+                                success: false,
+                                message: err
+                            })
+                        };
+
+                        return res.send({
+                            success: true,
+                            message: 'Your record has been saved successfully',
+                            data: {
+                                idSurvei: newSurveyId,
+                                idTemplate: idTemplate,
+                                judulSurvei: judulSurvei,
+                                detailSurvei: detailSurvei,
+                                periode: periode,
+                                startDate: startDate,
+                                endDate: endDate,
+                            }
+                        })
+                    })
+                })
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: "invalid role"
+                })
+        }
+    },
+
+    newTemplateSurvey(req, res) {
+        let { namaTemplate, role, pertanyaan } = req.body
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const newTemplateId = lib.generateRandomString(20)
+            const templateSurveiQuery = "INSERT INTO template_survei (id_template, nama_template, role) VALUES (?, ?, ?)"
+            connection.query(templateSurveiQuery, [newTemplateId, namaTemplate, role], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+            })
+
+            const templatePertanyaanQuery = lib.parsingTemplatePertanyaan(pertanyaan, newTemplateId)
+            connection.query(templatePertanyaanQuery, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                    data: {
+                        templateId: newTemplateId,
+                        namaTemplate: namaTemplate,
+                        role: role,
+                        pertanyaan: pertanyaan
+                    }
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getQuestionWithSuggest(req, res) {
+        // get query params
+        const queryPayload = lib.getLikeQuery(req.query.query)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = "SELECT id_pertanyaan_survei, tipe, pertanyaan FROM pertanyaan_survei where pertanyaan LIKE ?"
+            connection.query(query, [queryPayload], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getSurveyTemplate(req, res) {
+        // SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey order by template_survei.id_template;
+
+        let role = req.query.role
+        let query = ''
+        switch (role) {
+            case 'dosen':
+                query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'dosen' order by template_survei.id_template;`
+                break;
+            case 'alumni':
+                query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'alumni' order by template_survei.id_template;`
+            case 'mahasiswa':
+                query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'mahasiswa' order by template_survei.id_template;`
+            default:
+                query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey order by template_survei.id_template;`
+                break;
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: lib.parsingGetTemplateQuery(result),
+                })
+            })
+
+            connection.release();
+        })
+    },
 }

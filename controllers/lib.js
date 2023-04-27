@@ -87,8 +87,12 @@ module.exports = {
         return result;
     },
 
-    getCurrentUnixTimeStamp(date) {
+    getCurrentUnixTimeStamp() {
         return Math.floor(Date.now() / 1000);
+    },
+
+    addCurrentUnixTimeStamp(incr) {
+        return this.getCurrentUnixTimeStamp(Date.now()) + incr
     },
 
     generateBulkQueryAddMahasiswaToKelas(idKelas, idMahasiswa) {
@@ -101,21 +105,22 @@ module.exports = {
         return query
     },
 
-    // {
-    //     id_kelas: 'aJ99r6nBzJY190j1c5nO',
-    //     nama_kelas: 'Kalkulus - A',
-    //     nama_dosen: 'karina',
-    //     start_date: 1681895016,
-    //     end_date: 1689732350,
-    //     id_matkul: 'Qs9OPwh1jusKxMdIdw7K',
-    //     nama_matkul: 'Kalkulus',
-    //     nim: '192837',
-    //     nama: 'roni'
-    //   }
+    generateQueryForGetSurvey(role, time) {
+        switch (role) {
+            case 'dosen':
+                return `SELECT survei.id_survei, survei.judul_survei, survei.detail_survei, survei.periode, survei.start_date, survei.end_date, survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei JOIN template_survei ON survei.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei.start_date AND ${time} < survei.end_date`
+            case 'mahasiswa':
+                return `SELECT survei_mahasiswa.id_survei_mahasiswa, survei_mahasiswa.judul_survei, survei_mahasiswa.detail_survei, survei_mahasiswa.periode, survei_mahasiswa.start_date, survei_mahasiswa.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe, kelas.id_kelas, kelas.nama_kelas, kelas.nama_dosen FROM survei_mahasiswa JOIN template_survei ON survei_mahasiswa.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei JOIN kelas on kelas.id_kelas = survei_mahasiswa.id_kelas WHERE ${time} > survei_mahasiswa.start_date AND ${time} < survei_mahasiswa.end_date`
+            // alumni
+            default:
+                return `SELECT survei_alumni.id_survei_alumni, survei_alumni.judul_survei, survei_alumni.detail_survei, survei_alumni.periode, survei_alumni.start_date, survei_alumni.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei_alumni JOIN template_survei ON survei_alumni.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei.start_date AND ${time} < survei.end_date`
+        }
+
+
+    },
 
     parsingGetKelasQueryResult(result) {
-
-        let obj = {
+        return {
             idKelas: result[0].id_kelas,
             namaKelas: result[0].nama_kelas,
             namaDosen: result[0].nama_dosen,
@@ -130,7 +135,129 @@ module.exports = {
                 }
             })
         }
+    },
 
-        return obj
+    parsingSurveyResult(options, resultQuery, role) {
+
+        switch (role) {
+            case 'dosen':
+                return {
+                    idSurvei: resultQuery[0].id_survei,
+                    judulSurvei: resultQuery[0].judul_survei,
+                    detailSurvei: resultQuery[0].detail_survei,
+                    periode: resultQuery[0].periode,
+                    startDate: resultQuery[0].start_date,
+                    endDate: resultQuery[0].end_date,
+                    role: resultQuery[0].mahasiswa,
+                    opsi: options,
+                    pertanyaan: resultQuery.map(element => {
+                        return {
+                            tipe: element.tipe,
+                            pertanyaan: element.pertanyaan,
+                            id: element.id_pertanyaan_survei,
+                        }
+                    })
+                }
+            case 'mahasiswa':
+                return {
+                    idSurvei: resultQuery[0].id_survei,
+                    judulSurvei: resultQuery[0].judul_survei,
+                    detailSurvei: resultQuery[0].detail_survei,
+                    periode: resultQuery[0].periode,
+                    startDate: resultQuery[0].start_date,
+                    endDate: resultQuery[0].end_date,
+                    role: resultQuery[0].mahasiswa,
+                    opsi: options,
+                    kelas: {
+                        id: resultQuery[0].id_kelas,
+                        namaKelas: resultQuery[0].nama_kelas,
+                        namDosen: resultQuery[0].nama_dosen,
+                    },
+                    pertanyaan: resultQuery.map(element => {
+                        return {
+                            tipe: element.tipe,
+                            pertanyaan: element.pertanyaan,
+                            id: element.id_pertanyaan_survei,
+                        }
+                    })
+                }
+            // alumni
+            default:
+                return {
+                    idSurvei: resultQuery[0].id_survei,
+                    judulSurvei: resultQuery[0].judul_survei,
+                    detailSurvei: resultQuery[0].detail_survei,
+                    periode: resultQuery[0].periode,
+                    startDate: resultQuery[0].start_date,
+                    endDate: resultQuery[0].end_date,
+                    role: resultQuery[0].mahasiswa,
+                    opsi: options,
+                    pertanyaan: resultQuery.map(element => {
+                        return {
+                            tipe: element.tipe,
+                            pertanyaan: element.pertanyaan,
+                            id: element.id_pertanyaan_survei,
+                        }
+                    })
+                }
+        }
+
+
+    },
+
+    generateBulkQueryForNewQuestion(payload) {
+        let query = "INSERT INTO pertanyaan_survei (id_pertanyaan_survei, tipe, pertanyaan) VALUES "
+        payload.forEach((element, index) => {
+            const value = (index === payload.length - 1) ? `('${this.generateRandomString(20)}', '${element.tipe}', '${element.pertanyaan}')` : `('${this.generateRandomString(20)}', '${element.tipe}', '${element.pertanyaan}'), `
+            query += value
+        })
+
+        return query
+    },
+
+    parsingTemplatePertanyaan(pertanyaan, idTemplate) {
+        let query = "INSERT INTO template_pertanyaan (id_template_pertanyaan, id_template, id_pertanyaan_survey) VALUES "
+        pertanyaan.forEach((element, index) => {
+            const value = (index === pertanyaan.length - 1) ? `('${this.generateRandomString(20)}', '${idTemplate}', '${element}')` : `('${this.generateRandomString(20)}', '${idTemplate}', '${element}'), `
+            query += value
+        })
+
+        return query
+    },
+
+    parsingGetTemplateQuery(result) {
+        let temp = {}
+        result.forEach(element => {
+            if (!temp.hasOwnProperty(element.id_template)) {
+                temp[element.id_template] = {
+                    idTemplate: element.id_template,
+                    namaTemplate: element.nama_template,
+                    role: element.role,
+                    pertanyaan: [
+                        {
+                            idPertanyaan: element.id_pertanyaan_survei,
+                            tipe: element.tipe,
+                            pertanyaan: element.pertanyaan,
+                        }
+                    ]
+                }
+            } else {
+                temp[element.id_template].pertanyaan.push(
+                    {
+                        idPertanyaan: element.id_pertanyaan_survei,
+                        tipe: element.tipe,
+                        pertanyaan: element.pertanyaan,
+                    }
+                )
+            }
+
+        });
+        let finalRes = []
+        for (var prop in temp) {
+            if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                finalRes.push(temp[prop])
+            }
+        }
+        return finalRes
     }
 }
