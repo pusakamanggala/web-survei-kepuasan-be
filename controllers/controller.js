@@ -1068,7 +1068,10 @@ module.exports = {
                 return res.send({
                     success: true,
                     message: 'Fetch data successfully',
-                    data: lib.parsingSurveyResult(options, result, role.toLowerCase()),
+                    data: {
+                        opsi: options,
+                        survei: lib.parsingSurveyResult(result, role.toLowerCase())
+                    },
                 })
             })
 
@@ -1114,7 +1117,7 @@ module.exports = {
         let query = ""
         switch (role.toLowerCase()) {
             case 'dosen':
-                query = "INSERT INTO survei_dosen (id_survei_mahasiswa, id_template, id_kelas, judul_survei, detail_survei, start_date, end_date, periode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                query = "INSERT INTO survei_dosen (id_survei_dosen, id_template, judul_survei, detail_survei, start_date, end_date, periode) VALUES (?, ?, ?, ?, ?, ?, ?)"
 
                 pool.getConnection(function (err, connection) {
                     if (err) {
@@ -1124,7 +1127,7 @@ module.exports = {
                         })
                     };
 
-                    connection.query(query, [newSurveyId, idTemplate, judulSurvei, detailSurvei, periode, startDate, endDate, role], function (err, result) {
+                    connection.query(query, [newSurveyId, idTemplate, judulSurvei, detailSurvei, startDate, endDate, periode], function (err, result) {
                         if (err) {
                             return res.status(500).json({
                                 success: false,

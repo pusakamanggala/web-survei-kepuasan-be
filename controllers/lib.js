@@ -108,12 +108,12 @@ module.exports = {
     generateQueryForGetSurvey(role, time) {
         switch (role) {
             case 'dosen':
-                return `SELECT survei.id_survei, survei.judul_survei, survei.detail_survei, survei.periode, survei.start_date, survei.end_date, survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei JOIN template_survei ON survei.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei.start_date AND ${time} < survei.end_date`
+                return `SELECT survei_dosen.id_survei_dosen, survei_dosen.judul_survei, survei_dosen.detail_survei, survei_dosen.periode, survei_dosen.start_date, survei_dosen.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei_dosen JOIN template_survei ON survei_dosen.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei_dosen.start_date AND ${time} < survei_dosen.end_date ORDER BY survei_dosen.id_survei_dosen, pertanyaan_survei.tipe asc`
             case 'mahasiswa':
-                return `SELECT survei_mahasiswa.id_survei_mahasiswa, survei_mahasiswa.judul_survei, survei_mahasiswa.detail_survei, survei_mahasiswa.periode, survei_mahasiswa.start_date, survei_mahasiswa.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe, kelas.id_kelas, kelas.nama_kelas, kelas.nama_dosen FROM survei_mahasiswa JOIN template_survei ON survei_mahasiswa.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei JOIN kelas on kelas.id_kelas = survei_mahasiswa.id_kelas WHERE ${time} > survei_mahasiswa.start_date AND ${time} < survei_mahasiswa.end_date`
+                return `SELECT survei_mahasiswa.id_survei_mahasiswa, survei_mahasiswa.judul_survei, survei_mahasiswa.detail_survei, survei_mahasiswa.periode, survei_mahasiswa.start_date, survei_mahasiswa.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe, kelas.id_kelas, kelas.nama_kelas, kelas.nama_dosen FROM survei_mahasiswa JOIN template_survei ON survei_mahasiswa.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei JOIN kelas on kelas.id_kelas = survei_mahasiswa.id_kelas WHERE ${time} > survei_mahasiswa.start_date AND ${time} < survei_mahasiswa.end_date ORDER BY survei_mahasiswa.id_survei_mahasiswa, pertanyaan_survei.tipe asc`
             // alumni
             default:
-                return `SELECT survei_alumni.id_survei_alumni, survei_alumni.judul_survei, survei_alumni.detail_survei, survei_alumni.periode, survei_alumni.start_date, survei_alumni.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei_alumni JOIN template_survei ON survei_alumni.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei.start_date AND ${time} < survei.end_date`
+                return `SELECT survei_alumni.id_survei_alumni, survei_alumni.judul_survei, survei_alumni.detail_survei, survei_alumni.periode, survei_alumni.start_date, survei_alumni.end_date, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, pertanyaan_survei.tipe FROM survei_alumni JOIN template_survei ON survei_alumni.id_template = template_survei.id_template JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON template_pertanyaan.id_pertanyaan_survey = pertanyaan_survei.id_pertanyaan_survei WHERE ${time} > survei_alumni.start_date AND ${time} < survei_alumni.end_date ORDER BY survei_alumni.id_survei_alumni, pertanyaan_survei.tipe asc`
         }
 
 
@@ -137,72 +137,126 @@ module.exports = {
         }
     },
 
-    parsingSurveyResult(options, resultQuery, role) {
+    parsingSurveyResult(resultQuery, role) {
+        let temp = {}
+        let finalRes = []
 
         switch (role) {
             case 'dosen':
-                return {
-                    idSurvei: resultQuery[0].id_survei,
-                    judulSurvei: resultQuery[0].judul_survei,
-                    detailSurvei: resultQuery[0].detail_survei,
-                    periode: resultQuery[0].periode,
-                    startDate: resultQuery[0].start_date,
-                    endDate: resultQuery[0].end_date,
-                    role: resultQuery[0].mahasiswa,
-                    opsi: options,
-                    pertanyaan: resultQuery.map(element => {
-                        return {
-                            tipe: element.tipe,
-                            pertanyaan: element.pertanyaan,
-                            id: element.id_pertanyaan_survei,
+                resultQuery.forEach(element => {
+                    if (!temp.hasOwnProperty(element.id_survei_dosen)) {
+                        temp[element.id_survei_dosen] = {
+                            idSurvei: element.id_survei_dosen,
+                            judulSurvei: element.judul_survei,
+                            detailSurvei: element.detail_survei,
+                            periode: element.periode,
+                            startDate: element.start_date,
+                            endDate: element.end_date,
+                            pertanyaan: [
+                                {
+                                    idPertanyaan: element.id_pertanyaan_survei,
+                                    tipe: element.tipe,
+                                    pertanyaan: element.pertanyaan,
+                                }
+                            ]
                         }
-                    })
+                    } else {
+                        temp[element.id_survei_dosen].pertanyaan.push(
+                            {
+                                idPertanyaan: element.id_pertanyaan_survei,
+                                tipe: element.tipe,
+                                pertanyaan: element.pertanyaan,
+                            }
+                        )
+                    }
+                });
+
+                for (var prop in temp) {
+                    if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                        finalRes.push(temp[prop])
+                    }
                 }
+
+                return finalRes
+
             case 'mahasiswa':
-                return {
-                    idSurvei: resultQuery[0].id_survei,
-                    judulSurvei: resultQuery[0].judul_survei,
-                    detailSurvei: resultQuery[0].detail_survei,
-                    periode: resultQuery[0].periode,
-                    startDate: resultQuery[0].start_date,
-                    endDate: resultQuery[0].end_date,
-                    role: resultQuery[0].mahasiswa,
-                    opsi: options,
-                    kelas: {
-                        id: resultQuery[0].id_kelas,
-                        namaKelas: resultQuery[0].nama_kelas,
-                        namDosen: resultQuery[0].nama_dosen,
-                    },
-                    pertanyaan: resultQuery.map(element => {
-                        return {
-                            tipe: element.tipe,
-                            pertanyaan: element.pertanyaan,
-                            id: element.id_pertanyaan_survei,
+                resultQuery.forEach(element => {
+                    if (!temp.hasOwnProperty(element.id_survei_mahasiswa)) {
+                        temp[element.id_survei_mahasiswa] = {
+                            idSurvei: element.id_survei_mahasiswa,
+                            judulSurvei: element.judul_survei,
+                            detailSurvei: element.detail_survei,
+                            periode: element.periode,
+                            startDate: element.start_date,
+                            endDate: element.end_date,
+                            kelas: {
+                                id: element.id_kelas,
+                                namaKelas: element.nama_kelas,
+                                namDosen: element.nama_dosen,
+                            },
+                            pertanyaan: [
+                                {
+                                    idPertanyaan: element.id_pertanyaan_survei,
+                                    tipe: element.tipe,
+                                    pertanyaan: element.pertanyaan,
+                                }
+                            ]
                         }
-                    })
+                    } else {
+                        temp[element.id_survei_mahasiswa].pertanyaan.push(
+                            {
+                                idPertanyaan: element.id_pertanyaan_survei,
+                                tipe: element.tipe,
+                                pertanyaan: element.pertanyaan,
+                            }
+                        )
+                    }
+                });
+
+                for (var prop in temp) {
+                    if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                        finalRes.push(temp[prop])
+                    }
                 }
-            // alumni
+
+                return finalRes
             default:
-                return {
-                    idSurvei: resultQuery[0].id_survei,
-                    judulSurvei: resultQuery[0].judul_survei,
-                    detailSurvei: resultQuery[0].detail_survei,
-                    periode: resultQuery[0].periode,
-                    startDate: resultQuery[0].start_date,
-                    endDate: resultQuery[0].end_date,
-                    role: resultQuery[0].mahasiswa,
-                    opsi: options,
-                    pertanyaan: resultQuery.map(element => {
-                        return {
-                            tipe: element.tipe,
-                            pertanyaan: element.pertanyaan,
-                            id: element.id_pertanyaan_survei,
+                resultQuery.forEach(element => {
+                    if (!temp.hasOwnProperty(element.id_survei_alumni)) {
+                        temp[element.id_survei_alumni] = {
+                            idSurvei: element.id_survei_alumni,
+                            judulSurvei: element.judul_survei,
+                            detailSurvei: element.detail_survei,
+                            periode: element.periode,
+                            startDate: element.start_date,
+                            endDate: element.end_date,
+                            pertanyaan: [
+                                {
+                                    idPertanyaan: element.id_pertanyaan_survei,
+                                    tipe: element.tipe,
+                                    pertanyaan: element.pertanyaan,
+                                }
+                            ]
                         }
-                    })
+                    } else {
+                        temp[element.id_survei_alumni].pertanyaan.push(
+                            {
+                                idPertanyaan: element.id_pertanyaan_survei,
+                                tipe: element.tipe,
+                                pertanyaan: element.pertanyaan,
+                            }
+                        )
+                    }
+                });
+
+                for (var prop in temp) {
+                    if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                        finalRes.push(temp[prop])
+                    }
                 }
+
+                return finalRes
         }
-
-
     },
 
     generateBulkQueryForNewQuestion(payload) {
