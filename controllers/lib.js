@@ -313,5 +313,45 @@ module.exports = {
             }
         }
         return finalRes
+    },
+
+    generateInsertQueryForSurveyAnswer(role, nim, idSurvei, jawaban, submissionDate) {
+        let query = ""
+        switch (role) {
+            case 'dosen':
+                query = `INSERT INTO hasil_survei_dosen (id_hasil_survei_dosen, id_survei_dosen, id_dosen, id_pertanyaan_survei, id_opsi, essay, submission_date) VALUES `
+
+                jawaban.forEach((element, index) => {
+                    const essay = (element.essay === undefined) ? null : `'${element.essay}'`
+                    const value = (index === jawaban.length - 1) ? `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate})` : `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate}), `
+                    query += value
+                });
+
+                return query
+
+            case 'mahasiswa':
+                query = `INSERT INTO hasil_survei_mahasiswa (id_hasil_survei_mahasiswa, id_survei_mahasiswa, id_mahasiswa, id_pertanyaan_survei, id_opsi, essay, submission_date) VALUES `
+
+                jawaban.forEach((element, index) => {
+                    const essay = (element.essay === undefined) ? null : `'${element.essay}'`
+                    const value = (index === jawaban.length - 1) ? `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate})` : `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate}), `
+                    query += value
+                });
+
+                return query
+            case 'alumni':
+                query = `INSERT INTO hasil_survei_alumni (id_hasil_survei_alumni, id_survei_alumni, id_mahasiswa, id_pertanyaan_survei, id_opsi, essay, submission_date) VALUES `
+
+                jawaban.forEach((element, index) => {
+                    const essay = (element.essay === undefined) ? null : `'${element.essay}'`
+                    const value = (index === jawaban.length - 1) ? `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate})` : `('${this.generateRandomString(20)}', '${idSurvei}', '${nim}', '${element.idPertanyaan}', '${element.idOpsi}', ${essay}, ${submissionDate}), `
+                    query += value
+                });
+
+                return query
+            default:
+                break;
+        }
+
     }
 }

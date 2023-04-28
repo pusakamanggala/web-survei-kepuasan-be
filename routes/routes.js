@@ -63,7 +63,7 @@ router.post('/survey-template', survei.newTemplateSurvey)
 router.get('/question/suggest', survei.getQuestionWithSuggest) // get question suggestion with query param ?query=
 router.get('/survey-template', survei.getSurveyTemplate) // get survey template with query param ?entity=mahasiswa/dosen/alumni
 
-
+router.post('/fill-survey/:role', survei.fillSurvey)
 
 module.exports = router;
 

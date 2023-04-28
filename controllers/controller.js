@@ -1330,8 +1330,6 @@ module.exports = {
     },
 
     getSurveyTemplate(req, res) {
-        // SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey order by template_survei.id_template;
-
         let role = req.query.role
         let query = ''
         switch (role) {
@@ -1380,4 +1378,56 @@ module.exports = {
             connection.release();
         })
     },
+
+    fillSurvey(req, res) {
+        const role = req.params.role
+        let { nim, nip, idSurvei, jawaban, submissionDate } = req.body
+        let query = ""
+        switch (role.toLowerCase()) {
+            case 'dosen':
+                query = lib.generateInsertQueryForSurveyAnswer(role.toLowerCase(), nip, idSurvei, jawaban, submissionDate)
+                break;
+            case 'alumni':
+                query = lib.generateInsertQueryForSurveyAnswer(role.toLowerCase(), nim, idSurvei, jawaban, submissionDate)
+                break;
+            case 'mahasiswa':
+                query = lib.generateInsertQueryForSurveyAnswer(role.toLowerCase(), nim, idSurvei, jawaban, submissionDate)
+                break;
+
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Your record has been saved successfully',
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    // select survei, user info (mahasiswa => dosen dan kelas), jawaban, essay, submission date 
 }
