@@ -435,16 +435,19 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from mahasiswa where status='aktif'", function (err, res) {
-                totalRecords = parseInt(res[0]["count(*)"])
-            })
-
-
             let query = ""
 
             if (angkatan !== undefined) {
+                connection.query("select count(*) from mahasiswa WHERE status='aktif' AND angkatan = ?", [angkatan], function (err, res) {
+                    totalRecords = parseInt(res[0]["count(*)"])
+                })
+
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
             } else {
+                connection.query("select count(*) from mahasiswa WHERE status='aktif'", [angkatan], function (err, res) {
+                    totalRecords = parseInt(res[0]["count(*)"])
+                })
+
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
             }
 
@@ -618,10 +621,19 @@ module.exports = {
             };
 
             let query = ""
+            let totalRecords = 0
 
             if (angkatan !== undefined) {
+                connection.query("select count(*) from mahasiswa WHERE status='alumni' AND angkatan = ?", [angkatan], function (err, res) {
+                    totalRecords = parseInt(res[0]["count(*)"])
+                })
+
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
             } else {
+                connection.query("select count(*) from mahasiswa WHERE status='alumni'", [angkatan], function (err, res) {
+                    totalRecords = parseInt(res[0]["count(*)"])
+                })
+
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
             }
 
@@ -644,7 +656,9 @@ module.exports = {
                 return res.send({
                     success: true,
                     message: 'Fetch data successfully',
-                    data: result
+                    data: result,
+                    totalRecords: totalRecords,
+                    totalPage: Math.ceil(totalRecords / limit)
                 })
             })
 
