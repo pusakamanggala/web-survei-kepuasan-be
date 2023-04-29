@@ -1038,9 +1038,10 @@ module.exports = {
 
     getSurvey(req, res) {
         const role = req.query.role
+        const userId = req.query.id
         const currentTimestamp = lib.getCurrentUnixTimeStamp()
 
-        const query = lib.generateQueryForGetSurvey(role.toLowerCase(), currentTimestamp, currentTimestamp)
+        const query = lib.generateQueryForGetSurvey(role.toLowerCase(), currentTimestamp, userId)
 
         pool.getConnection(function (err, connection) {
             if (err) {
