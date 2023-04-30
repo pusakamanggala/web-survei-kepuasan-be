@@ -872,7 +872,7 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from kelas", function (err, res) {
+            connection.query("select count(*) from kelas WHERE ? > start_date AND ? < end_date", function (err, res) {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
@@ -1430,5 +1430,121 @@ module.exports = {
         })
     },
 
-    // select survei, user info (mahasiswa => dosen dan kelas), jawaban, essay, submission date 
+    getHistorySurvey(req, res) {
+        const role = req.params.role
+        const id = req.query.id
+
+        let query = ""
+        switch (role.toLowerCase()) {
+            case 'mahasiswa':
+                query = `SELECT DISTINCT survei_mahasiswa.id_survei_mahasiswa, survei_mahasiswa.judul_survei, survei_mahasiswa.detail_survei, survei_mahasiswa.start_date, survei_mahasiswa.end_date, survei_mahasiswa.periode, hasil_survei_mahasiswa.submission_date, hasil_survei_mahasiswa.id_survei_mahasiswa FROM survei_mahasiswa JOIN hasil_survei_mahasiswa ON survei_mahasiswa.id_survei_mahasiswa = hasil_survei_mahasiswa.id_survei_mahasiswa WHERE hasil_survei_mahasiswa.id_mahasiswa = ${id}`
+                break;
+            case 'dosen':
+                query = `SELECT DISTINCT survei_dosen.id_survei_dosen, survei_dosen.judul_survei, survei_dosen.detail_survei, survei_dosen.start_date, survei_dosen.end_date, survei_dosen.periode, hasil_survei_dosen.submission_date, hasil_survei_dosen.id_survei_dosen FROM survei_dosen JOIN hasil_survei_dosen ON survei_dosen.id_survei_dosen = hasil_survei_dosen.id_survei_dosen WHERE hasil_survei_dosen.id_dosen = ${id}`
+                break;
+            case 'alumni':
+                query = `SELECT DISTINCT survei_alumni.id_survei_alumni, survei_alumni.judul_survei, survei_alumni.detail_survei, survei_alumni.start_date, survei_alumni.end_date, survei_alumni.periode, hasil_survei_alumni.submission_date, hasil_survei_alumni.id_survei_alumni FROM survei_alumni JOIN hasil_survei_alumni ON survei_alumni.id_survei_alumni = hasil_survei_alumni.id_survei_alumni WHERE hasil_survei_alumni.id_mahasiswa = ${id}`
+                break;
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result,
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getStatisticSurvey(req, res) {
+        const role = req.params.role
+        const id = req.query.id
+
+        let query = ""
+        let totalRespondenQuery = ""
+
+        switch (role.toLowerCase()) {
+            case 'mahasiswa':
+                query = `SELECT hasil_survei_mahasiswa.id_survei_mahasiswa, hasil_survei_mahasiswa.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_mahasiswa.id_opsi FROM hasil_survei_mahasiswa JOIN pertanyaan_survei ON hasil_survei_mahasiswa.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_mahasiswa.id_survei_mahasiswa = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+
+                totalRespondenQuery = `SELECT count(DISTINCT id_mahasiswa) as total_responden FROM hasil_survei_mahasiswa WHERE id_survei_mahasiswa = '${id}' ORDER BY id_mahasiswa`
+                break;
+            case 'dosen':
+                query = `SELECT hasil_survei_dosen.id_survei_dosen, hasil_survei_dosen.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_dosen.id_opsi FROM hasil_survei_dosen JOIN pertanyaan_survei ON hasil_survei_dosen.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_dosen.id_survei_dosen = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+
+                totalRespondenQuery = `SELECT count(DISTINCT id_dosen) as total_responden FROM hasil_survei_dosen WHERE id_survei_dosen = '${id}' ORDER BY id_dosen`
+                break;
+            case 'alumni':
+                query = `SELECT hasil_survei_alumni.id_survei_alumni, hasil_survei_alumni.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_alumni.id_opsi FROM hasil_survei_alumni JOIN pertanyaan_survei ON hasil_survei_alumni.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_alumni.id_survei_alumni = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+
+                totalRespondenQuery = `SELECT count(DISTINCT id_mahasiswa) as total_responden FROM hasil_survei_alumni WHERE id_survei_alumni = '${id}' ORDER BY id_mahasiswa`
+                break;
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            let totalResponse = 0
+            connection.query(totalRespondenQuery, function (err, res) {
+                totalResponse = parseInt(res[0]["total_responden"])
+            })
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: {
+                        idSurvey: id,
+                        surveyData: lib.parsingGetStatisticSurvey(result, totalResponse),
+                    }
+                })
+            })
+
+            connection.release();
+        })
+    }
 }

@@ -65,5 +65,15 @@ router.get('/survey-template', survei.getSurveyTemplate) // get survey template 
 
 router.post('/fill-survey/:role', survei.fillSurvey)
 
+// get history survey dosen/mahasiswa/dosen
+router.get('/history/survey/:role', survei.getHistorySurvey) // /history/survey/mahasiswa?id=${user_id}
+// get all survei with that id and calculate ikm
+// total kurang, cukup, baik, sangat baik
+// ikm
+// total responden
+router.get('/statistic/survey/:role', survei.getStatisticSurvey) // /statistic/survey/mahasiswa?id=${survei_id}
+
+// get rekap, nama dosen semuanya per tanggal, ikm, total per opsi/bobot
+
 module.exports = router;
 

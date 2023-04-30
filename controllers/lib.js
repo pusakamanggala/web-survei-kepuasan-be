@@ -350,6 +350,72 @@ module.exports = {
             default:
                 break;
         }
+    },
 
+    parsingGetStatisticSurvey(result, totalRespondents) {
+        let temp = {}
+        let finalRes = []
+
+        result.forEach(element => {
+            if (!temp.hasOwnProperty(element.id_pertanyaan_survei)) {
+                temp[element.id_pertanyaan_survei] = {
+                    idPertanyaan: element.id_pertanyaan_survei,
+                    pertanyaan: element.pertanyaan,
+                    jawaban: {
+                        "dm0KtbQPdK0Pfazv8opf": {
+                            "bobot": 1,
+                            "opsi": "KURANG",
+                            "total": 0,
+                            "totalResponden": totalRespondents,
+                            "ikm": 0.0,
+                        },
+                        "21craH0rvALjqlnwcOI6": {
+                            "bobot": 2,
+                            "opsi": "CUKUP",
+                            "total": 0,
+                            "totalResponden": totalRespondents,
+                            "ikm": 0.0,
+                        },
+                        "6ULGZb5Vxwy9wdNNhYdc": {
+                            "bobot": 3,
+                            "opsi": "BAIK",
+                            "total": 0,
+                            "totalResponden": totalRespondents,
+                            "ikm": 0.0,
+                        },
+                        "z5OHO3jjoYXq4GHXacIR": {
+                            "opsi": "SANGAT BAIK",
+                            "bobot": 4,
+                            "total": 0,
+                            "totalResponden": totalRespondents,
+                            "ikm": 0.0,
+                        },
+                        "rnDvcWSJ3ASo3NLe1mg7": {
+                            "opsi": "ESSAY",
+                            "bobot": 0,
+                            "total": 0,
+                            "totalResponden": totalRespondents,
+                            "ikm": 0.0,
+                        },
+                    }
+                }
+
+                let currentOption = temp[element.id_pertanyaan_survei]["jawaban"][element.id_opsi]
+                currentOption["total"]++
+                currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
+            } else {
+                let currentOption = temp[element.id_pertanyaan_survei]["jawaban"][element.id_opsi]
+                currentOption["total"]++
+                currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
+            }
+        });
+
+        for (var prop in temp) {
+            if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                finalRes.push(temp[prop])
+            }
+        }
+
+        return finalRes
     }
 }
