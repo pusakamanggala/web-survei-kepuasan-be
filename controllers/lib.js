@@ -397,6 +397,7 @@ module.exports = {
                             "totalResponden": totalRespondents,
                             "ikm": 0.0,
                         },
+                        "ikm": 0,
                     }
                 }
 
@@ -426,10 +427,180 @@ module.exports = {
 
         for (var prop in temp) {
             if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                temp[prop]["jawaban"]["ikm"] = this.parsingGlobalIkm(temp[prop]["jawaban"])
                 finalRes.push(temp[prop])
             }
         }
 
         return finalRes
+    },
+
+    parsingGlobalIkm(obj) {
+        let total = 0.0
+        for (var prop in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                const num = parseFloat(obj[prop]["ikm"])
+                if (!isNaN(num)) {
+                    total += num
+                }
+            }
+        }
+
+        return total
+    },
+
+    parsingSurveyRecap(result) {
+        let temp = {}
+        let finalRes = []
+        let trackerIdMahasiswaAndSurvey = {}
+
+        result.forEach(element => {
+            if (!temp.hasOwnProperty(element.id_dosen)) {
+                temp[element.id_dosen] = {
+                    idDosen: element.id_dosen,
+                    namaDosen: element.nama_dosen,
+                    periode: element.periode,
+                    hasilRekap: {
+                        "dm0KtbQPdK0Pfazv8opf": {
+                            "bobot": 1,
+                            "opsi": "KURANG",
+                            "total": 0,
+                            "ikm": 0.0,
+                        },
+                        "21craH0rvALjqlnwcOI6": {
+                            "bobot": 2,
+                            "opsi": "CUKUP",
+                            "total": 0,
+                            "ikm": 0.0,
+                        },
+                        "6ULGZb5Vxwy9wdNNhYdc": {
+                            "bobot": 3,
+                            "opsi": "BAIK",
+                            "total": 0,
+                            "ikm": 0.0,
+                        },
+                        "z5OHO3jjoYXq4GHXacIR": {
+                            "opsi": "SANGAT BAIK",
+                            "bobot": 4,
+                            "total": 0,
+                            "ikm": 0.0,
+                        },
+                        "rnDvcWSJ3ASo3NLe1mg7": {
+                            "opsi": "ESSAY",
+                            "bobot": 0,
+                            "total": 0,
+                            "ikm": 0.0,
+                            "essay": []
+                        },
+                        "responden": 0,
+                        "ikm": 0.0,
+                    }
+                }
+
+                if (trackerIdMahasiswaAndSurvey.hasOwnProperty(element.id_survei_mahasiswa)) {
+                    if (trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].includes(element.id_mahasiswa)) {
+                        // check the option and calculate ikm
+                        let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                        currentOption["total"]++
+
+                        if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                            if (element["essay"] !== undefined) {
+                                currentOption["essay"].push(element["essay"])
+                            }
+                        }
+                    } else {
+                        trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
+                        temp[element.id_dosen]["hasilRekap"]["responden"]++
+
+                        let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                        currentOption["total"]++
+
+                        if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                            if (element["essay"] !== undefined) {
+                                currentOption["essay"].push(element["essay"])
+                            }
+                        }
+                    }
+                } else {
+                    trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
+                        element.id_mahasiswa
+                    ]
+                    temp[element.id_dosen]["hasilRekap"]["responden"]++
+
+                    let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                    currentOption["total"]++
+
+                    if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                        if (element["essay"] !== undefined) {
+                            currentOption["essay"].push(element["essay"])
+                        }
+                    }
+                }
+
+            } else {
+                if (trackerIdMahasiswaAndSurvey.hasOwnProperty(element.id_survei_mahasiswa)) {
+                    if (trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].includes(element.id_mahasiswa)) {
+                        // check the option and calculate ikm
+                        let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                        currentOption["total"]++
+
+                        if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                            if (element["essay"] !== undefined) {
+                                currentOption["essay"].push(element["essay"])
+                            }
+                        }
+                    } else {
+                        trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
+                        temp[element.id_dosen]["hasilRekap"]["responden"]++
+
+                        let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                        currentOption["total"]++
+
+                        if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                            if (element["essay"] !== undefined) {
+                                currentOption["essay"].push(element["essay"])
+                            }
+                        }
+                    }
+                } else {
+                    trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
+                        element.id_mahasiswa
+                    ]
+                    temp[element.id_dosen]["hasilRekap"]["responden"]++
+
+                    let currentOption = temp[element.id_dosen]["hasilRekap"][element.id_opsi]
+                    currentOption["total"]++
+
+                    if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                        if (element["essay"] !== undefined) {
+                            currentOption["essay"].push(element["essay"])
+                        }
+                    }
+                }
+            }
+        });
+
+        for (var prop in temp) {
+            if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                temp[prop]["hasilRekap"] = this.calculateIKMOption(temp[prop]["hasilRekap"], temp[prop]["hasilRekap"]["responden"])
+                temp[prop]["hasilRekap"]["ikm"] = this.parsingGlobalIkm(temp[prop]["hasilRekap"])
+                finalRes.push(temp[prop])
+            }
+        }
+
+        return finalRes
+    },
+
+    calculateIKMOption(data, responden) {
+        for (var prop in data) {
+            if (Object.prototype.hasOwnProperty.call(data, prop)) {
+                const num = data[prop]["bobot"] * data[prop]["total"] / responden
+                if (!isNaN(num)) {
+                    data[prop]["ikm"] = num
+                }
+            }
+        }
+
+        return data
     }
 }

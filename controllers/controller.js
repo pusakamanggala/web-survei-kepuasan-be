@@ -1490,7 +1490,7 @@ module.exports = {
 
         switch (role.toLowerCase()) {
             case 'mahasiswa':
-                query = `SELECT hasil_survei_mahasiswa.id_survei_mahasiswa, hasil_survei_mahasiswa.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.essay FROM hasil_survei_mahasiswa JOIN pertanyaan_survei ON hasil_survei_mahasiswa.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_mahasiswa.id_survei_mahasiswa = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+                query = `SELECT hasil_survei_mahasiswa.id_survei_mahasiswa, hasil_survei_mahasiswa.id_pertanyaan_survei, survei_mahasiswa.id_kelas, kelas.nama_kelas, kelas.nama_dosen, pertanyaan_survei.pertanyaan, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.essay FROM hasil_survei_mahasiswa JOIN pertanyaan_survei ON hasil_survei_mahasiswa.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei JOIN survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa JOIN kelas ON kelas.id_kelas = survei_mahasiswa.id_kelas WHERE hasil_survei_mahasiswa.id_survei_mahasiswa = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
 
                 totalRespondenQuery = `SELECT count(DISTINCT id_mahasiswa) as total_responden FROM hasil_survei_mahasiswa WHERE id_survei_mahasiswa = '${id}' ORDER BY id_mahasiswa`
                 break;
@@ -1539,8 +1539,52 @@ module.exports = {
                     message: 'Fetch data successfully',
                     data: {
                         idSurvey: id,
+                        idKelas: result[0]["id_kelas"],
+                        namaKelas: result[0]["nama_kelas"],
+                        namaDosen: result[0]["nama_dosen"],
                         surveyData: lib.parsingGetStatisticSurvey(result, totalResponse),
+
                     }
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getSurveyRecap(req, res) {
+        const startDate = req.query.startDate
+        const endDate = req.query.endDate
+
+        const query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_hasil_survei_mahasiswa, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate}`
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: lib.parsingSurveyRecap(result)
                 })
             })
 
