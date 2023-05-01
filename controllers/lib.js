@@ -402,10 +402,24 @@ module.exports = {
 
                 let currentOption = temp[element.id_pertanyaan_survei]["jawaban"][element.id_opsi]
                 currentOption["total"]++
+
+                if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                    if (element["essay"] !== undefined) {
+                        currentOption["essay"] = [element["essay"]]
+                    }
+                }
+
                 currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
             } else {
                 let currentOption = temp[element.id_pertanyaan_survei]["jawaban"][element.id_opsi]
                 currentOption["total"]++
+
+                if (element["id_opsi"] === "rnDvcWSJ3ASo3NLe1mg7") {
+                    if (element["essay"] !== undefined) {
+                        currentOption["essay"].push(element["essay"])
+                    }
+                }
+
                 currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
             }
         });

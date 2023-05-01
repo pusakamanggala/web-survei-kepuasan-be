@@ -1490,17 +1490,17 @@ module.exports = {
 
         switch (role.toLowerCase()) {
             case 'mahasiswa':
-                query = `SELECT hasil_survei_mahasiswa.id_survei_mahasiswa, hasil_survei_mahasiswa.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_mahasiswa.id_opsi FROM hasil_survei_mahasiswa JOIN pertanyaan_survei ON hasil_survei_mahasiswa.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_mahasiswa.id_survei_mahasiswa = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+                query = `SELECT hasil_survei_mahasiswa.id_survei_mahasiswa, hasil_survei_mahasiswa.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.essay FROM hasil_survei_mahasiswa JOIN pertanyaan_survei ON hasil_survei_mahasiswa.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_mahasiswa.id_survei_mahasiswa = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
 
                 totalRespondenQuery = `SELECT count(DISTINCT id_mahasiswa) as total_responden FROM hasil_survei_mahasiswa WHERE id_survei_mahasiswa = '${id}' ORDER BY id_mahasiswa`
                 break;
             case 'dosen':
-                query = `SELECT hasil_survei_dosen.id_survei_dosen, hasil_survei_dosen.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_dosen.id_opsi FROM hasil_survei_dosen JOIN pertanyaan_survei ON hasil_survei_dosen.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_dosen.id_survei_dosen = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+                query = `SELECT hasil_survei_dosen.id_survei_dosen, hasil_survei_dosen.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_dosen.id_opsi, hasil_survei_dosen.essay FROM hasil_survei_dosen JOIN pertanyaan_survei ON hasil_survei_dosen.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_dosen.id_survei_dosen = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
 
                 totalRespondenQuery = `SELECT count(DISTINCT id_dosen) as total_responden FROM hasil_survei_dosen WHERE id_survei_dosen = '${id}' ORDER BY id_dosen`
                 break;
             case 'alumni':
-                query = `SELECT hasil_survei_alumni.id_survei_alumni, hasil_survei_alumni.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_alumni.id_opsi FROM hasil_survei_alumni JOIN pertanyaan_survei ON hasil_survei_alumni.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_alumni.id_survei_alumni = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
+                query = `SELECT hasil_survei_alumni.id_survei_alumni, hasil_survei_alumni.id_pertanyaan_survei, pertanyaan_survei.pertanyaan, hasil_survei_alumni.id_opsi, hasil_survei_alumni.essay FROM hasil_survei_alumni JOIN pertanyaan_survei ON hasil_survei_alumni.id_pertanyaan_survei = pertanyaan_survei.id_pertanyaan_survei WHERE hasil_survei_alumni.id_survei_alumni = '${id}' ORDER BY pertanyaan_survei.tipe ASC`
 
                 totalRespondenQuery = `SELECT count(DISTINCT id_mahasiswa) as total_responden FROM hasil_survei_alumni WHERE id_survei_alumni = '${id}' ORDER BY id_mahasiswa`
                 break;
