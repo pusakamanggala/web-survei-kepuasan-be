@@ -602,5 +602,9 @@ module.exports = {
         }
 
         return data
+    },
+
+    parsingErrorBulkInsert(role, id, err) {
+        return `${role} dengan ${id} ${err["sqlMessage"].split(" ")[2]} sudah terdaftar`
     }
 }

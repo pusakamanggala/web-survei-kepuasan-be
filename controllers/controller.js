@@ -120,7 +120,7 @@ module.exports = {
                 })
             };
 
-            const query = "SELECT nama, nip FROM dosen where nama LIKE ?"
+            const query = "SELECT nama, nip, telepon FROM dosen where nama LIKE ? AND status = 'AKTIF'"
             connection.query(query, [queryPayload], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -180,7 +180,7 @@ module.exports = {
                 if (err) {
                     return res.status(500).json({
                         success: false,
-                        message: err
+                        message: lib.parsingErrorBulkInsert("Dosen", "nip", err)
                     })
                 };
 
@@ -274,7 +274,7 @@ module.exports = {
                 if (err) {
                     return res.status(500).json({
                         success: false,
-                        message: err
+                        message: lib.parsingErrorBulkInsert('Mahasiswa', 'nim', err)
                     })
                 };
 
@@ -490,7 +490,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nim, angkatan, status FROM mahasiswa WHERE nama LIKE ? AND status = "AKTIF"';
+            const query = 'SELECT nama, nim, angkatan, telepon status FROM mahasiswa WHERE nama LIKE ? AND status = "AKTIF"';
             connection.query(query, [queryPayload], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -575,6 +575,13 @@ module.exports = {
                     })
                 };
 
+                if (result.affectedRows === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `tidak ada mahasiswa dengan nim ${nim}`
+                    })
+                }
+
                 return res.send({
                     success: true,
                     message: 'Your record has been updated successfully',
@@ -628,13 +635,13 @@ module.exports = {
                     totalRecords = parseInt(res[0]["count(*)"])
                 })
 
-                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon, tahun_kelulusan", orderBy, sortBy, `WHERE status = "ALUMNI" AND angkatan = ${angkatan}`, lib.getPaging(limit, page))
             } else {
                 connection.query("select count(*) from mahasiswa WHERE status='alumni'", [angkatan], function (err, res) {
                     totalRecords = parseInt(res[0]["count(*)"])
                 })
 
-                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
+                query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon, tahun_kelulusan", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
             }
 
             connection.query(query, [orderBy, sortBy], function (err, result) {
@@ -957,7 +964,7 @@ module.exports = {
                 })
             };
 
-            const query = "SELECT nama, nim FROM mahasiswa where nama LIKE ? and status = 'ALUMNI'"
+            const query = "SELECT nama, nim, angkatan, tahun_kelulusan, telepon FROM mahasiswa where nama LIKE ? and status = 'ALUMNI'"
             connection.query(query, [queryPayload], function (err, result) {
                 if (err) {
                     return res.status(500).json({
