@@ -750,7 +750,6 @@ module.exports = {
 
     addMahasiswaToKelas(req, res) {
         let { idKelas, idMahasiswa } = req.body
-        const newId = lib.generateRandomString(20)
 
         const query = lib.generateBulkQueryAddMahasiswaToKelas(idKelas, idMahasiswa)
         pool.getConnection(function (err, connection) {
@@ -1592,6 +1591,45 @@ module.exports = {
                     success: true,
                     message: 'Fetch data successfully',
                     data: lib.parsingSurveyRecap(result)
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    removeStudentFromClass(req, res) {
+        const nim = req.query.nim
+        const classId = req.query.classId
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = 'DELETE FROM kontrak_matkul WHERE id_kelas = ? AND id_mahasiswa = ?';
+            connection.query(query, [classId, nim], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0 || result.affectedRows === 0) {
+                    return res.status(400).json({
+                        success: true,
+                        message: 'There is no record with that requested id'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Success delete record',
+                    data: result[0]
                 })
             })
 

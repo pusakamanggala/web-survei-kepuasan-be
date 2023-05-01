@@ -75,6 +75,7 @@ router.get('/statistic/survey/:role', survei.getStatisticSurvey) // /statistic/s
 
 // get rekap, nama dosen semuanya per tanggal, ikm, total per opsi/bobot
 router.get('/recap/survey', survei.getSurveyRecap) // /recap/survey?startDate=120380312&endDate=123213
+router.delete('/remove-student', survei.removeStudentFromClass) // /remove-mahasiswa?nim=123123&classId=1230823
 
 module.exports = router;
 
