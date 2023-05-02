@@ -1805,4 +1805,43 @@ module.exports = {
             connection.release();
         })
     },
+
+    updateDosen(req, res) {
+        const id = req.params.id;
+
+        // parse data
+        const data = {
+            nama: req.body.nama,
+            telepon: req.body.telepon,
+            status: req.body.status,
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const query = 'UPDATE dosen SET ? WHERE nip = ? ';
+            connection.query(query, [data, id], function (err, result) {
+                if (err) throw err;
+
+                if (result['affectedRows'] === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'There is no record with that id'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Updated successfully',
+                })
+            })
+
+            connection.release();
+        })
+    }
 }

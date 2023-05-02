@@ -14,6 +14,7 @@ router.get('/dosen/:id', survei.getDosenById) // get dosen by id
 router.get('/dosen', survei.getAllDosen) // get all dosen 
 router.post('/dosen/bulk', upload.single('file'), survei.bulkInsertDosen)
 router.post('/dosen', survei.newDosen) // new dosen
+router.put('/dosen/:id', survei.updateDosen)
 
 router.get('/mahasiswa/suggest', survei.getMahasiswaWithSuggest) // get mahasiswa with suggest ?query=
 router.get('/mahasiswa/:id', survei.getMahasiswaById) // get mahasiswa by id
