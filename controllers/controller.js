@@ -752,7 +752,6 @@ module.exports = {
     addMahasiswaToKelas(req, res) {
         let { idKelas, idMahasiswa } = req.body
 
-        const query = lib.generateBulkQueryAddMahasiswaToKelas(idKelas, idMahasiswa)
         pool.getConnection(function (err, connection) {
             if (err) {
                 return res.status(500).json({
@@ -761,7 +760,8 @@ module.exports = {
                 })
             };
 
-            connection.query(query, function (err, result) {
+            // query all student with inputted class
+            connection.query(`SELECT id_mahasiswa FROM kontrak_matkul WHERE id_kelas = ?`, [idKelas], function (err, result) {
                 if (err) {
                     return res.status(500).json({
                         success: false,
@@ -769,13 +769,49 @@ module.exports = {
                     })
                 };
 
-                return res.send({
-                    success: true,
-                    message: 'Your record has been saved successfully',
-                    data: {
-                        idKelas: idKelas,
-                        idMahasiswa: idMahasiswa
+                if (result.affectedRows === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `there is no class with id ${idKelas}`
+                    })
+                }
+
+                const listStudent = result.map(v => v.id_mahasiswa)
+                let parsedStudent = []
+                for (const i of idMahasiswa) {
+                    if (!listStudent.includes(i)) {
+                        parsedStudent.push(i)
                     }
+                }
+
+                if (parsedStudent.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'Your record has been saved successfully',
+                        data: {
+                            idKelas: idKelas,
+                            idMahasiswa: idMahasiswa
+                        }
+                    })
+                }
+
+                const query = lib.generateBulkQueryAddMahasiswaToKelas(idKelas, parsedStudent)
+                connection.query(query, function (err, result) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    return res.send({
+                        success: true,
+                        message: 'Your record has been saved successfully',
+                        data: {
+                            idKelas: idKelas,
+                            idMahasiswa: idMahasiswa
+                        }
+                    })
                 })
             })
 
