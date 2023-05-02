@@ -1,27 +1,13 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const router = require('express').Router();
-const { survei } = require('../controllers');
+const { survei, middleware } = require('../controllers');
 const multer = require('multer')
 const fs = require('fs')
 
-function authenticateAccessToken(req, res, next) {
-    // parse token
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[2];
-
-    if (token == null) res.json({
-        message: "Invalid access token"
-    });
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        (err) ? res.json({
-            message: err
-        }) : next();
-    });
-};
-
 var upload = multer({ dest: "uploads/" })
+
+router.post('/login/:role', survei.login)
 
 router.get('/dosen/suggest', survei.getDosenWithSuggest) // get dosen with suggest ?query=
 router.get('/dosen/:id', survei.getDosenById) // get dosen by id

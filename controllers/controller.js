@@ -12,6 +12,7 @@ const DEFAULT_LIMIT = 10
 const DEFAULT_PAGE = 1
 const DEFAULT_SORT = "ASC"
 const DEFAULT_ORDER = "nim"
+const SESSION_EXPIRED_TIME = 259200 // 3 days
 
 module.exports = {
     getDosenById(req, res) {
@@ -490,7 +491,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nim, angkatan, telepon status FROM mahasiswa WHERE nama LIKE ? AND status = "AKTIF"';
+            const query = 'SELECT nama, nim, angkatan, telepon, status FROM mahasiswa WHERE nama LIKE ? AND status = "AKTIF"';
             connection.query(query, [queryPayload], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -878,11 +879,11 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from kelas WHERE ? > start_date AND ? < end_date", function (err, res) {
+            connection.query(`select count(*) from kelas WHERE ${now} > start_date AND ${now} < end_date`, function (err, res) {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = 'SELECT id_kelas, nama_kelas, nama_dosen FROM kelas WHERE ? > start_date AND ? < end_date';
+            const query = `SELECT id_kelas, nama_kelas, nama_dosen FROM kelas WHERE ${now} > start_date AND ${now} < end_date`;
             const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
             connection.query(queryWithPaging, [now, now], function (err, result) {
                 if (err) {
@@ -1676,4 +1677,96 @@ module.exports = {
         })
     },
 
+    login(req, res) {
+        const { id, password } = req.body
+        const role = req.params.role
+
+        let query = ""
+        let queryInsertSession = ""
+        const now = lib.getCurrentUnixTimeStamp()
+        const expiredTime = lib.addCurrentUnixTimeStamp(SESSION_EXPIRED_TIME)
+
+        switch (role.toLowerCase()) {
+            case 'dosen':
+                query = `SELECT nip, nama, telepon, password FROM dosen WHERE nip = ? AND status = 'AKTIF'`
+                queryInsertSession = `INSERT INTO dosen_session VALUES (?, ?, ?, ?)`
+                break;
+            case 'mahasiswa':
+                query = `SELECT nim, nama, angkatan, telepon, password FROM mahasiswa WHERE nim = ? AND status = 'AKTIF'`
+                queryInsertSession = `INSERT INTO mahasiswa_session VALUES (?, ?, ?, ?)`
+                break
+            case 'admin':
+                query = `SELECT * FROM admin WHERE id_admin = ?`
+                queryInsertSession = `INSERT INTO admin_session VALUES (?, ?, ?, ?)`
+                break
+            case 'alumni':
+                query = `SELECT nim, nama, angkatan, telepon, password, tahun_kelulusan FROM mahasiswa WHERE nim = ? AND status = 'ALUMNI'`
+                queryInsertSession = `INSERT INTO alumni_session VALUES (?, ?, ?, ?)`
+                break
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, [id], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0 || result.affectedRows === 0) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "wrong username or password"
+                    })
+                }
+
+                // check password hash
+                if (!lib.comparePassword(password, result[0]["password"])) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "wrong username or password"
+                    })
+                }
+
+                delete result[0]["password"]
+                const newToken = lib.generateRandomString(30)
+
+                // insert new token to db
+                connection.query(queryInsertSession, [newToken, id, now, expiredTime], function (err, result) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    if (result.length === 0 || result.affectedRows === 0) {
+                        return res.status(401).json({
+                            success: false,
+                            message: err
+                        })
+                    }
+                })
+
+                // set cookie
+                res.cookie('Authorization', newToken);
+
+                return res.send({
+                    success: true,
+                    message: 'Success login',
+                    data: result[0]
+                })
+            })
+
+            connection.release();
+        })
+    },
 }
