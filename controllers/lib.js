@@ -1,4 +1,9 @@
+require('dotenv').config();
+
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
+
+const ACCESS_TOKEN_EXPIRED_TIME = '3d'
 
 module.exports = {
     getLikeQuery(query) {
@@ -606,5 +611,11 @@ module.exports = {
 
     parsingErrorBulkInsert(role, id, err) {
         return `${role} dengan ${id} ${err["sqlMessage"].split(" ")[2]} sudah terdaftar`
+    },
+
+    generateAccessToken(payload) {
+        return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: ACCESS_TOKEN_EXPIRED_TIME
+        });
     }
 }

@@ -12,7 +12,6 @@ const DEFAULT_LIMIT = 10
 const DEFAULT_PAGE = 1
 const DEFAULT_SORT = "ASC"
 const DEFAULT_ORDER = "nim"
-const SESSION_EXPIRED_TIME = 259200 // 3 days
 
 module.exports = {
     getDosenById(req, res) {
@@ -1718,26 +1717,18 @@ module.exports = {
         const role = req.params.role
 
         let query = ""
-        let queryInsertSession = ""
-        const now = lib.getCurrentUnixTimeStamp()
-        const expiredTime = lib.addCurrentUnixTimeStamp(SESSION_EXPIRED_TIME)
-
         switch (role.toLowerCase()) {
             case 'dosen':
                 query = `SELECT nip, nama, telepon, password FROM dosen WHERE nip = ? AND status = 'AKTIF'`
-                queryInsertSession = `INSERT INTO dosen_session VALUES (?, ?, ?, ?)`
                 break;
             case 'mahasiswa':
                 query = `SELECT nim, nama, angkatan, telepon, password FROM mahasiswa WHERE nim = ? AND status = 'AKTIF'`
-                queryInsertSession = `INSERT INTO mahasiswa_session VALUES (?, ?, ?, ?)`
                 break
             case 'admin':
                 query = `SELECT * FROM admin WHERE id_admin = ?`
-                queryInsertSession = `INSERT INTO admin_session VALUES (?, ?, ?, ?)`
                 break
             case 'alumni':
                 query = `SELECT nim, nama, angkatan, telepon, password, tahun_kelulusan FROM mahasiswa WHERE nim = ? AND status = 'ALUMNI'`
-                queryInsertSession = `INSERT INTO alumni_session VALUES (?, ?, ?, ?)`
                 break
         }
 
@@ -1773,27 +1764,12 @@ module.exports = {
                 }
 
                 delete result[0]["password"]
-                const newToken = lib.generateRandomString(30)
 
-                // insert new token to db
-                connection.query(queryInsertSession, [newToken, id, now, expiredTime], function (err, result) {
-                    if (err) {
-                        return res.status(500).json({
-                            success: false,
-                            message: err
-                        })
-                    };
-
-                    if (result.length === 0 || result.affectedRows === 0) {
-                        return res.status(401).json({
-                            success: false,
-                            message: err
-                        })
-                    }
-                })
+                // generate jwt
+                const jwt = lib.generateAccessToken({ "userId": id, "role": role.toUpperCase() })
 
                 // set cookie
-                res.cookie('Authorization', newToken);
+                res.cookie('Authorization', jwt, { httpOnly: true });
 
                 return res.send({
                     success: true,
