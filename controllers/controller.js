@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const pool = mysql.createPool(config);
 const lib = require('./lib')
 const excelToJson = require('convert-excel-to-json')
+const fs = require('fs')
 
 pool.on('error', (err) => {
     console.log(err)
@@ -168,6 +169,9 @@ module.exports = {
         })
 
         const query = lib.generateBulkQueryDosen(excelData.Sheet1)
+
+        fs.unlinkSync(filePath)
+
         pool.getConnection(function (err, connection) {
             if (err) {
                 return res.status(500).json({
@@ -215,6 +219,8 @@ module.exports = {
         })
 
         const query = lib.generateBulkQueryAlumni(excelData.Sheet1)
+        fs.unlinkSync(filePath)
+
         pool.getConnection(function (err, connection) {
             if (err) {
                 return res.status(500).json({
@@ -262,6 +268,8 @@ module.exports = {
         })
 
         const query = lib.generateBulkQueryMahasiswa(excelData.Sheet1)
+        fs.unlinkSync(filePath)
+
         pool.getConnection(function (err, connection) {
             if (err) {
                 return res.status(500).json({
@@ -1729,6 +1737,9 @@ module.exports = {
                 break
             case 'alumni':
                 query = `SELECT nim, nama, angkatan, telepon, password, tahun_kelulusan FROM mahasiswa WHERE nim = ? AND status = 'ALUMNI'`
+                break
+            case 'admin':
+                query = `SELECT id_admin, nama, password FROM admin WHERE id_admin = ?`
                 break
         }
 
