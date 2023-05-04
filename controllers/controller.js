@@ -1621,7 +1621,7 @@ module.exports = {
         const startDate = req.query.startDate
         const endDate = req.query.endDate
 
-        const query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_hasil_survei_mahasiswa, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate}`
+        const query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate}`
 
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -1840,6 +1840,51 @@ module.exports = {
                 return res.send({
                     success: true,
                     message: 'Updated successfully',
+                })
+            })
+
+            connection.release();
+        })
+    },
+
+    getSurveyRecapExcel(req, res) {
+        const startDate = req.query.startDate
+        const endDate = req.query.endDate
+
+        const query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay, opsi_pertanyaan.opsi FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa JOIN opsi_pertanyaan ON opsi_pertanyaan.id_opsi = hasil_survei_mahasiswa.id_opsi WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate} AND opsi_pertanyaan.opsi != "ESSAY"`
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, async function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                const parsedData = lib.parsingSurveyRecapExcel(result)
+
+                // generate excel file
+                const fileName = lib.generateRecapFileName(startDate, endDate)
+                const downloadLink = await lib.getDownloadLink(parsedData, fileName)
+                return res.send({
+                    success: true,
+                    message: 'success generate recap file',
+                    data: downloadLink
                 })
             })
 

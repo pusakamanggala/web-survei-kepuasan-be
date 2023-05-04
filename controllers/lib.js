@@ -1,7 +1,10 @@
 require('dotenv').config();
-
+const axios = require('axios');
+const FormData = require('form-data');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+
 
 const ACCESS_TOKEN_EXPIRED_TIME = '3d'
 
@@ -623,5 +626,178 @@ module.exports = {
         return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: ACCESS_TOKEN_EXPIRED_TIME
         });
+    },
+
+    parsingSurveyRecapExcel(result) {
+        let temp = {}
+        let finalRes = []
+        let trackerIdMahasiswaAndSurvey = {}
+
+        result.forEach((element, index) => {
+            if (!temp.hasOwnProperty(element.id_dosen)) {
+                temp[element.id_dosen] = {
+                    "No": index + 1,
+                    "Nama Dosen": element.nama_dosen,
+                    "Hasil Rekap": {
+                        "Responden": 0,
+                        "KURANG": {
+                            "bobot": 1,
+                            "Total": 0,
+                            "IKM": 0.0,
+                        },
+                        "CUKUP": {
+                            "bobot": 2,
+                            "Total": 0,
+                            "IKM": 0.0,
+                        },
+                        "BAIK": {
+                            "bobot": 3,
+                            "Total": 0,
+                            "IKM": 0.0,
+                        },
+                        "SANGAT BAIK": {
+                            "bobot": 4,
+                            "Total": 0,
+                            "IKM": 0.0,
+                        },
+                        "IKM": 0.0,
+                    }
+                }
+
+                if (trackerIdMahasiswaAndSurvey.hasOwnProperty(element.id_survei_mahasiswa)) {
+                    if (trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].includes(element.id_mahasiswa)) {
+                        // check the option and calculate ikm
+                        let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+                        currentOption["Total"]++
+                    } else {
+                        trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
+                        temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
+
+                        let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+                        currentOption["Total"]++
+                    }
+                } else {
+                    trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
+                        element.id_mahasiswa
+                    ]
+                    temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
+                    let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+
+                    currentOption["Total"]++
+                }
+
+            } else {
+                if (trackerIdMahasiswaAndSurvey.hasOwnProperty(element.id_survei_mahasiswa)) {
+                    if (trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].includes(element.id_mahasiswa)) {
+                        // check the option and calculate ikm
+                        let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+                        currentOption["Total"]++
+                    } else {
+                        trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
+                        temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
+
+                        let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+                        currentOption["Total"]++
+                    }
+                } else {
+                    trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
+                        element.id_mahasiswa
+                    ]
+                    temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
+
+                    let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
+                    currentOption["Total"]++
+                }
+            }
+        });
+
+        for (var prop in temp) {
+            if (Object.prototype.hasOwnProperty.call(temp, prop)) {
+                temp[prop]["Hasil Rekap"] = this.calculateIKMOptionExcel(temp[prop]["Hasil Rekap"], temp[prop]["Hasil Rekap"]["Responden"])
+                temp[prop]["Hasil Rekap"]["IKM"] = this.parsingGlobalIkmExcel(temp[prop]["Hasil Rekap"])
+                finalRes.push(temp[prop])
+            }
+        }
+
+        return finalRes.sort((a, b) => a.No - b.No)
+    },
+
+    parsingGlobalIkmExcel(obj) {
+        let total = 0.0
+        for (var prop in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                const num = parseFloat(obj[prop]["IKM"])
+                if (!isNaN(num)) {
+                    total += num
+                }
+            }
+        }
+
+        return total
+    },
+
+    calculateIKMOptionExcel(data, responden) {
+        for (var prop in data) {
+            if (Object.prototype.hasOwnProperty.call(data, prop)) {
+                const num = data[prop]["bobot"] * data[prop]["Total"] / responden
+                if (!isNaN(num)) {
+                    data[prop]["IKM"] = num
+                    delete data[prop]['bobot']
+                }
+            }
+        }
+
+        return data
+    },
+
+    async getDownloadLink(json, fileName) {
+        const stringJson = JSON.stringify(json)
+
+        fs.writeFileSync(fileName, stringJson)
+        const formData = new FormData();
+
+        formData.append('inputTxt', stringJson);
+        formData.append('1708311304', fs.createReadStream(fileName));
+        formData.append('MultipleWorksheets', 'true');
+        formData.append('UploadOptions', 'JSON');
+        formData.append('outputType', 'XLSX');
+
+        const response = await axios({
+            method: 'post',
+            url: 'https://api.products.aspose.app/cells/conversion/api/ConversionApi/Convert',
+            data: formData,
+            headers: {
+                'accept': '*/*',
+                'accept-language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+                'content-type': `multipart/form-data; boundary=${formData._boundary}`,
+                'sec-ch-ua': '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"',
+                'sec-ch-ua-mobile': '?1',
+                'sec-ch-ua-platform': '"Android"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-site'
+            },
+            responseType: 'arraybuffer'
+        });
+
+        const j = JSON.parse(Buffer.from(response.data).toString());
+        fs.unlinkSync(fileName)
+
+        return this.downloadFilePath(j["FolderName"], fileName)
+    },
+
+    downloadFilePath(folder, file) {
+        return `https://api.products.aspose.app/cells/conversion/api/Download/${folder}?file=${file}`
+    },
+
+    generateRecapFileName(startDate, endDate) {
+        return `REKAP_SURVEI_${this.convertUnixTimeToLocalTime(startDate)}-${this.convertUnixTimeToLocalTime(endDate)}.xlsx`
+    },
+
+    convertUnixTimeToLocalTime(time) {
+        const date = new Date(time * 1000); // convert to milliseconds
+        const options = { timeZone: 'Asia/Jakarta' };
+        const formattedDate = new Intl.DateTimeFormat('id-ID', options).format(date);
+        return formattedDate.replace(/\//g, '-')
     }
 }

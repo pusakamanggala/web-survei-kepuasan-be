@@ -68,6 +68,7 @@ router.get('/history/survey/:role', middleware(ALL_ROLE), survei.getHistorySurve
 router.get('/statistic/survey/:role', middleware(ALL_ROLE), survei.getStatisticSurvey) // /statistic/survey/mahasiswa?id=${survei_id}
 
 // get rekap, nama dosen semuanya per tanggal, ikm, total per opsi/bobot
+router.get('/recap/survey/excel', middleware(ONLY_ADMIN), survei.getSurveyRecapExcel)
 router.get('/recap/survey', middleware(ONLY_ADMIN), survei.getSurveyRecap) // /recap/survey?startDate=120380312&endDate=123213
 router.delete('/remove-student', middleware(ONLY_ADMIN), survei.removeStudentFromClass) // /remove-mahasiswa?nim=123123&classId=1230823
 
