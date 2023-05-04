@@ -854,10 +854,18 @@ module.exports = {
                     })
                 };
 
+                const dataKelas = lib.parsingGetKelasQueryResult(result)
+                if (!dataKelas) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Kelas ini belum memiliki mahasiswa',
+                    })
+                }
+
                 return res.send({
                     success: true,
-                    message: 'Your record has been saved successfully',
-                    data: lib.parsingGetKelasQueryResult(result)
+                    message: 'fetch data successfully',
+                    data: dataKelas
                 })
             })
 

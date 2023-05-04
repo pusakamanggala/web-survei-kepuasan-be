@@ -123,21 +123,27 @@ module.exports = {
     },
 
     parsingGetKelasQueryResult(result) {
-        return {
-            idKelas: result[0].id_kelas,
-            namaKelas: result[0].nama_kelas,
-            namaDosen: result[0].nama_dosen,
-            StartDate: result[0].start_date,
-            endDate: result[0].end_date,
-            idMatkul: result[0].id_matkul,
-            namaMatkul: result[0].nama_matkul,
-            mahasiswa: result.map(e => {
-                return {
-                    nim: e.nim,
-                    nama: e.nama
-                }
-            })
+        try {
+            return {
+                idKelas: result[0].id_kelas,
+                namaKelas: result[0].nama_kelas,
+                namaDosen: result[0].nama_dosen,
+                StartDate: result[0].start_date,
+                endDate: result[0].end_date,
+                idMatkul: result[0].id_matkul,
+                namaMatkul: result[0].nama_matkul,
+                mahasiswa: result.map(e => {
+                    return {
+                        nim: e.nim,
+                        nama: e.nama
+                    }
+                })
+            }
+        } catch (error) {
+            return false
         }
+
+
     },
 
     parsingSurveyResult(resultQuery, role) {
