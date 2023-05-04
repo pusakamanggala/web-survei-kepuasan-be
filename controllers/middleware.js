@@ -4,7 +4,15 @@ const jwt = require('jsonwebtoken');
 const checkUserRole = (requiredRoles) => {
     return (req, res, next) => {
         // read cookie
-        const token = req.headers["cookie"].split('=')[1]
+        let token = ""
+        try {
+            token = req.headers["cookie"].split('=')[1]
+        } catch (error) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized Access"
+            })
+        }
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) {
