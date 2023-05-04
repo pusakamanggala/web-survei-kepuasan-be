@@ -693,14 +693,21 @@ module.exports = {
                 })
             };
 
-            const query = 'INSERT INTO mata_kuliah (id_matkul, nama_matkul) VALUES (?, ?)';
-            connection.query(query, [newId, namaMataKuliah], function (err, result) {
+            const query = 'INSERT INTO mata_kuliah (id_matkul, nama_matkul) SELECT * FROM (SELECT ? AS id_matkul, ? AS nama_matkul) t WHERE NOT EXISTS (SELECT 1 FROM mata_kuliah where nama_matkul = ?) LIMIT 1';
+            connection.query(query, [newId, namaMataKuliah, namaMataKuliah], function (err, result) {
                 if (err) {
                     return res.status(500).json({
                         success: false,
                         message: err
                     })
                 };
+
+                if (result.affectedRows === 0) {
+                    return res.status(500).json({
+                        success: false,
+                        message: `Subject ${namaMataKuliah} already exists`
+                    })
+                }
 
                 return res.send({
                     success: true,
