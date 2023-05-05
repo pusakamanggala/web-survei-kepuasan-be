@@ -1398,14 +1398,17 @@ module.exports = {
     getSurveyTemplate(req, res) {
         let role = req.query.role
         let query = ''
-        switch (role) {
+        switch (role.toLowerCase()) {
             case 'dosen':
                 query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'dosen' order by template_survei.id_template;`
                 break;
             case 'alumni':
+                console.log("here")
                 query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'alumni' order by template_survei.id_template;`
+                break
             case 'mahasiswa':
                 query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey WHERE template_survei.role = 'mahasiswa' order by template_survei.id_template;`
+                break
             default:
                 query = `SELECT template_survei.id_template, template_survei.nama_template, template_survei.role, pertanyaan_survei.id_pertanyaan_survei, pertanyaan_survei.tipe, pertanyaan_survei.pertanyaan FROM template_survei JOIN template_pertanyaan ON template_survei.id_template = template_pertanyaan.id_template JOIN pertanyaan_survei ON pertanyaan_survei.id_pertanyaan_survei = template_pertanyaan.id_pertanyaan_survey order by template_survei.id_template;`
                 break;
