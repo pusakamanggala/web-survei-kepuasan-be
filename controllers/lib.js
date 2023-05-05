@@ -380,37 +380,29 @@ module.exports = {
                             "bobot": 1,
                             "opsi": "KURANG",
                             "total": 0,
-                            "totalResponden": totalRespondents,
-                            "ikm": 0.0,
                         },
                         "21craH0rvALjqlnwcOI6": {
                             "bobot": 2,
                             "opsi": "CUKUP",
                             "total": 0,
-                            "totalResponden": totalRespondents,
-                            "ikm": 0.0,
                         },
                         "6ULGZb5Vxwy9wdNNhYdc": {
                             "bobot": 3,
                             "opsi": "BAIK",
                             "total": 0,
-                            "totalResponden": totalRespondents,
-                            "ikm": 0.0,
                         },
                         "z5OHO3jjoYXq4GHXacIR": {
                             "opsi": "SANGAT BAIK",
                             "bobot": 4,
                             "total": 0,
-                            "totalResponden": totalRespondents,
-                            "ikm": 0.0,
                         },
                         "rnDvcWSJ3ASo3NLe1mg7": {
                             "opsi": "ESSAY",
                             "bobot": 0,
                             "total": 0,
-                            "totalResponden": totalRespondents,
-                            "ikm": 0.0,
                         },
+                        "responden": totalRespondents,
+                        "totalRespon": 0,
                         "ikm": 0,
                     }
                 }
@@ -424,7 +416,7 @@ module.exports = {
                     }
                 }
 
-                currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
+                temp[element.id_pertanyaan_survei]["jawaban"]["totalRespon"]++
             } else {
                 let currentOption = temp[element.id_pertanyaan_survei]["jawaban"][element.id_opsi]
                 currentOption["total"]++
@@ -434,8 +426,7 @@ module.exports = {
                         currentOption["essay"].push(element["essay"])
                     }
                 }
-
-                currentOption["ikm"] = parseFloat(currentOption["bobot"]) * parseFloat(currentOption["total"]) / parseFloat(totalRespondents)
+                temp[element.id_pertanyaan_survei]["jawaban"]["totalRespon"]++
             }
         });
 
@@ -453,9 +444,9 @@ module.exports = {
         let total = 0.0
         for (var prop in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                const num = parseFloat(obj[prop]["ikm"])
-                if (!isNaN(num)) {
-                    total += num
+                const point = parseFloat(obj[prop]["bobot"]) * parseFloat(obj[prop]["total"]) / parseFloat(obj["totalRespon"])
+                if (!isNaN(point)) {
+                    total += point
                 }
             }
         }
@@ -479,34 +470,30 @@ module.exports = {
                             "bobot": 1,
                             "opsi": "KURANG",
                             "total": 0,
-                            "ikm": 0.0,
                         },
                         "21craH0rvALjqlnwcOI6": {
                             "bobot": 2,
                             "opsi": "CUKUP",
                             "total": 0,
-                            "ikm": 0.0,
                         },
                         "6ULGZb5Vxwy9wdNNhYdc": {
                             "bobot": 3,
                             "opsi": "BAIK",
                             "total": 0,
-                            "ikm": 0.0,
                         },
                         "z5OHO3jjoYXq4GHXacIR": {
                             "opsi": "SANGAT BAIK",
                             "bobot": 4,
                             "total": 0,
-                            "ikm": 0.0,
                         },
                         "rnDvcWSJ3ASo3NLe1mg7": {
                             "opsi": "ESSAY",
                             "bobot": 0,
                             "total": 0,
-                            "ikm": 0.0,
                             "essay": []
                         },
                         "responden": 0,
+                        "totalRespon": 0,
                         "ikm": 0.0,
                     }
                 }
@@ -521,6 +508,8 @@ module.exports = {
                             if (element["essay"] !== undefined) {
                                 currentOption["essay"].push(element["essay"])
                             }
+                        } else {
+                            temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                         }
                     } else {
                         trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
@@ -533,6 +522,8 @@ module.exports = {
                             if (element["essay"] !== undefined) {
                                 currentOption["essay"].push(element["essay"])
                             }
+                        } else {
+                            temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                         }
                     }
                 } else {
@@ -548,6 +539,8 @@ module.exports = {
                         if (element["essay"] !== undefined) {
                             currentOption["essay"].push(element["essay"])
                         }
+                    } else {
+                        temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                     }
                 }
 
@@ -562,6 +555,8 @@ module.exports = {
                             if (element["essay"] !== undefined) {
                                 currentOption["essay"].push(element["essay"])
                             }
+                        } else {
+                            temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                         }
                     } else {
                         trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
@@ -574,6 +569,8 @@ module.exports = {
                             if (element["essay"] !== undefined) {
                                 currentOption["essay"].push(element["essay"])
                             }
+                        } else {
+                            temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                         }
                     }
                 } else {
@@ -589,6 +586,8 @@ module.exports = {
                         if (element["essay"] !== undefined) {
                             currentOption["essay"].push(element["essay"])
                         }
+                    } else {
+                        temp[element.id_dosen]["hasilRekap"]["totalRespon"]++
                     }
                 }
             }
@@ -596,26 +595,12 @@ module.exports = {
 
         for (var prop in temp) {
             if (Object.prototype.hasOwnProperty.call(temp, prop)) {
-                temp[prop]["hasilRekap"] = this.calculateIKMOption(temp[prop]["hasilRekap"], temp[prop]["hasilRekap"]["responden"])
                 temp[prop]["hasilRekap"]["ikm"] = this.parsingGlobalIkm(temp[prop]["hasilRekap"])
                 finalRes.push(temp[prop])
             }
         }
 
         return finalRes
-    },
-
-    calculateIKMOption(data, responden) {
-        for (var prop in data) {
-            if (Object.prototype.hasOwnProperty.call(data, prop)) {
-                const num = data[prop]["bobot"] * data[prop]["total"] / responden
-                if (!isNaN(num)) {
-                    data[prop]["ikm"] = num
-                }
-            }
-        }
-
-        return data
     },
 
     parsingErrorBulkInsert(role, id, err) {
@@ -639,27 +624,24 @@ module.exports = {
                     "No": index + 1,
                     "Nama Dosen": element.nama_dosen,
                     "Hasil Rekap": {
-                        "Responden": 0,
                         "KURANG": {
                             "bobot": 1,
                             "Total": 0,
-                            "IKM": 0.0,
                         },
                         "CUKUP": {
                             "bobot": 2,
                             "Total": 0,
-                            "IKM": 0.0,
                         },
                         "BAIK": {
                             "bobot": 3,
                             "Total": 0,
-                            "IKM": 0.0,
                         },
                         "SANGAT BAIK": {
                             "bobot": 4,
                             "Total": 0,
-                            "IKM": 0.0,
                         },
+                        "Total Respon": 0,
+                        "Responden": 0,
                         "IKM": 0.0,
                     }
                 }
@@ -669,12 +651,14 @@ module.exports = {
                         // check the option and calculate ikm
                         let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
                         currentOption["Total"]++
+                        temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                     } else {
                         trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
                         temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
 
                         let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
                         currentOption["Total"]++
+                        temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                     }
                 } else {
                     trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
@@ -684,6 +668,7 @@ module.exports = {
                     let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
 
                     currentOption["Total"]++
+                    temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                 }
 
             } else {
@@ -692,12 +677,14 @@ module.exports = {
                         // check the option and calculate ikm
                         let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
                         currentOption["Total"]++
+                        temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                     } else {
                         trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa].push(element.id_mahasiswa)
                         temp[element.id_dosen]["Hasil Rekap"]["Responden"]++
 
                         let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
                         currentOption["Total"]++
+                        temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                     }
                 } else {
                     trackerIdMahasiswaAndSurvey[element.id_survei_mahasiswa] = [
@@ -707,14 +694,14 @@ module.exports = {
 
                     let currentOption = temp[element.id_dosen]["Hasil Rekap"][element.opsi]
                     currentOption["Total"]++
+                    temp[element.id_dosen]["Hasil Rekap"]["Total Respon"]++
                 }
             }
         });
 
         for (var prop in temp) {
             if (Object.prototype.hasOwnProperty.call(temp, prop)) {
-                temp[prop]["Hasil Rekap"] = this.calculateIKMOptionExcel(temp[prop]["Hasil Rekap"], temp[prop]["Hasil Rekap"]["Responden"])
-                temp[prop]["Hasil Rekap"]["IKM"] = this.parsingGlobalIkmExcel(temp[prop]["Hasil Rekap"])
+                temp[prop]["Hasil Rekap"]["IKM"] = this.parsingGlobalIkmExcel(temp[prop]["Hasil Rekap"], temp[prop]["Hasil Rekap"]["Total Respon"])
                 finalRes.push(temp[prop])
             }
         }
@@ -722,32 +709,20 @@ module.exports = {
         return finalRes.sort((a, b) => a.No - b.No)
     },
 
-    parsingGlobalIkmExcel(obj) {
+    parsingGlobalIkmExcel(obj, totalRespon) {
         let total = 0.0
         for (var prop in obj) {
             if (Object.prototype.hasOwnProperty.call(obj, prop)) {
-                const num = parseFloat(obj[prop]["IKM"])
-                if (!isNaN(num)) {
-                    total += num
+                const point = parseFloat(obj[prop]["bobot"]) * parseFloat(obj[prop]["Total"]) / parseFloat(totalRespon)
+                if (!isNaN(point)) {
+                    const prevTotal = obj[prop]["Total"]
+                    obj[prop] = prevTotal
+                    total += point
                 }
             }
         }
 
         return total
-    },
-
-    calculateIKMOptionExcel(data, responden) {
-        for (var prop in data) {
-            if (Object.prototype.hasOwnProperty.call(data, prop)) {
-                const num = data[prop]["bobot"] * data[prop]["Total"] / responden
-                if (!isNaN(num)) {
-                    data[prop]["IKM"] = num
-                    delete data[prop]['bobot']
-                }
-            }
-        }
-
-        return data
     },
 
     async getDownloadLink(json, fileName) {

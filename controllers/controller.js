@@ -27,7 +27,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nip, telepon FROM dosen WHERE nip = ?';
+            const query = 'SELECT nama, nip, telepon FROM dosen WHERE nip = ? AND STATUS="AKTIF"';
             connection.query(query, [id], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -751,7 +751,7 @@ module.exports = {
                     data: {
                         idKelas: newId,
                         idMatkul: idMatkul,
-                        idDosne: idDosen,
+                        idDosen: idDosen,
                         namaKelas: namaKelas,
                         startDate: startDate,
                         endDate: endDate,
