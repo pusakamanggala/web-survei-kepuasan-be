@@ -384,7 +384,7 @@ module.exports = {
                 })
             };
 
-            const query = 'SELECT nama, nim, angkatan, telepon FROM mahasiswa WHERE nim = ? and status="ALUMNI"';
+            const query = 'SELECT nama, nim, angkatan, telepon, tahun_kelulusan FROM mahasiswa WHERE nim = ? and status="ALUMNI"';
             connection.query(query, [id], function (err, result) {
                 if (err) {
                     return res.status(500).json({
