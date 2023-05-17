@@ -34,6 +34,7 @@ router.get('/alumni/:id', middleware(ONLY_ADMIN), survei.getAlumniById) // get m
 router.get('/alumni', middleware(ONLY_ADMIN), survei.getAllAlumni) // &sortBy=angkatan/semester&orderBy=asc/desc
 router.post('/alumni/bulk', middleware(ONLY_ADMIN), upload.single('file'), survei.bulkInsertAlumni)
 router.post('/alumni', middleware(ONLY_ADMIN), survei.newAlumni) // new alumni 
+router.put('/alumni/:id', middleware(ONLY_ADMIN), survei.updateAlumni)
 
 router.post('/matkul', middleware(ONLY_ADMIN), survei.newMatkul)
 router.post('/kelas', middleware(ONLY_ADMIN), survei.newKelas)
