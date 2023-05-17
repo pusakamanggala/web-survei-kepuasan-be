@@ -75,11 +75,11 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from dosen", function (err, res) {
+            connection.query("select count(*) from dosen WHERE status= 'AKTIF'", function (err, res) {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = 'SELECT nama, nip, telepon FROM dosen';
+            const query = 'SELECT nama, nip, telepon FROM dosen WHERE status = "AKTIF"';
             const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
             connection.query(queryWithPaging, function (err, result) {
                 if (err) {
