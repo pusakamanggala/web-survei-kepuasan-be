@@ -16,6 +16,8 @@ const checkUserRole = (requiredRoles) => {
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) {
+                res.clearCookie('Authorization')
+
                 if (jwt.TokenExpiredError) {
                     return res.status(401).json({
                         success: false,
@@ -33,6 +35,8 @@ const checkUserRole = (requiredRoles) => {
             const role = user.role
 
             if (!requiredRoles.includes(role)) {
+                res.clearCookie('Authorization')
+
                 return res.status(401).json({
                     success: false,
                     message: "Unauthorized Access"
