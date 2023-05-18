@@ -13,6 +13,7 @@ const DEFAULT_LIMIT = 10
 const DEFAULT_PAGE = 1
 const DEFAULT_SORT = "ASC"
 const DEFAULT_ORDER = "nim"
+const MAX_AGE_COOKIE = 3 * 24 * 60 * 60 * 1000 // 3d same as jwt expired time
 
 module.exports = {
     getDosenById(req, res) {
@@ -1799,7 +1800,7 @@ module.exports = {
                 const jwt = lib.generateAccessToken({ "userId": id, "role": role.toUpperCase() })
 
                 // set cookie
-                res.cookie('Authorization', jwt, { httpOnly: true });
+                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, httpOnly: true });
 
                 return res.send({
                     success: true,
