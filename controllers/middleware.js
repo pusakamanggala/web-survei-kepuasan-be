@@ -16,9 +16,17 @@ const checkUserRole = (requiredRoles) => {
 
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) {
+                if (jwt.TokenExpiredError) {
+                    return res.status(401).json({
+                        success: false,
+                        message: "Session Expired",
+                    })
+                }
+
                 return res.status(401).json({
                     success: false,
-                    message: "Unauthorized Access"
+                    message: "Unauthorized Access",
+                    err: err
                 })
             }
 
