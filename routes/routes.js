@@ -16,21 +16,21 @@ const ONLY_ALUMNI = ['ADMIN', 'ALUMNI']
 router.post('/login/:role', survei.login)
 
 router.get('/dosen/suggest', middleware(ONLY_ADMIN), survei.getDosenWithSuggest) // get dosen with suggest ?query=
-router.get('/dosen/:id', middleware(ONLY_ADMIN), survei.getDosenById) // get dosen by id
+router.get('/dosen/:id', middleware(ONLY_DOSEN), survei.getDosenById) // get dosen by id
 router.get('/dosen', middleware(ONLY_ADMIN), survei.getAllDosen) // get all dosen 
 router.post('/dosen/bulk', middleware(ONLY_ADMIN), upload.single('file'), survei.bulkInsertDosen)
 router.post('/dosen', middleware(ONLY_ADMIN), survei.newDosen) // new dosen
 router.put('/dosen/:id', middleware(ONLY_ADMIN), survei.updateDosen)
 
 router.get('/mahasiswa/suggest', middleware(ONLY_ADMIN), survei.getMahasiswaWithSuggest) // get mahasiswa with suggest ?query=
-router.get('/mahasiswa/:id', middleware(ONLY_ADMIN), survei.getMahasiswaById) // get mahasiswa by id
+router.get('/mahasiswa/:id', middleware(ONLY_MAHASISWA), survei.getMahasiswaById) // get mahasiswa by id
 router.get('/mahasiswa', middleware(ONLY_ADMIN), survei.getAllMahasiswa) // &sortBy=angkatan/semester&orderBy=asc/desc
 router.post('/mahasiswa/bulk', middleware(ONLY_ADMIN), upload.single('file'), survei.bulkInsertMahasiswa)
 router.post('/mahasiswa', middleware(ONLY_ADMIN), survei.newMahasiswa) // new mahasiswa
 router.put('/mahasiswa/:id', middleware(ONLY_ADMIN), survei.updateMahasiswa)
 
 router.get('/alumni/suggest', middleware(ONLY_ADMIN), survei.getAlumniWithSuggest) // get alumni with suggest ?query=
-router.get('/alumni/:id', middleware(ONLY_ADMIN), survei.getAlumniById) // get mahasiswa by id
+router.get('/alumni/:id', middleware(ONLY_ALUMNI), survei.getAlumniById) // get mahasiswa by id
 router.get('/alumni', middleware(ONLY_ADMIN), survei.getAllAlumni) // &sortBy=angkatan/semester&orderBy=asc/desc
 router.post('/alumni/bulk', middleware(ONLY_ADMIN), upload.single('file'), survei.bulkInsertAlumni)
 router.post('/alumni', middleware(ONLY_ADMIN), survei.newAlumni) // new alumni 
