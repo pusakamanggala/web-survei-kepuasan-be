@@ -12,4 +12,4 @@ app.use(cors({ origin: "*" }))
 const appRoute = require('./routes/routes');
 app.use('/', appRoute);
 
-app.listen(8000, () => console.log('App running on port : 8000'));
+app.listen(process.env.PORT, () => console.log(`App running on port : ${process.env.PORT}`));
