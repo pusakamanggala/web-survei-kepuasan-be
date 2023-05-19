@@ -15,7 +15,7 @@ app.use('/', appRoute);
 const origin = process.env.ORIGIN.split(',')
 app.use(cors(
     {
-        allowedHeaders: "Authorization",
+        allowedHeaders: ["Authorization", "Access-Control-Allow-Origin", "Content-Type", "Access-Control-Allow-Credentials"],
         credentials: true,
         origin: origin
     }
