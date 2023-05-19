@@ -6,7 +6,15 @@ const checkUserRole = (requiredRoles) => {
         // read cookie
         let token = ""
         try {
-            token = req.headers["cookie"].split('=')[1]
+            const splitCookie = req.headers["cookie"].split(";")
+
+            splitCookie.forEach(element => {
+                const key = element.split("=")
+                if (key[0].trim() === "Authorization") {
+                    token = key[1]
+                }
+            });
+
         } catch (error) {
             return res.status(401).json({
                 success: false,
