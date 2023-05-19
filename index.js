@@ -7,9 +7,17 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(bodyParser.json());
-app.use(cors())
+
 
 const appRoute = require('./routes/routes');
 app.use('/', appRoute);
 
+const origin = process.env.ORIGIN.split(',')
+app.use(cors(
+    {
+        allowedHeaders: "Authorization",
+        credentials: true,
+        origin: origin
+    }
+))
 app.listen(process.env.PORT, () => console.log(`App running on port : ${process.env.PORT}`));
