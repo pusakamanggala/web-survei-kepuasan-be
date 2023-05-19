@@ -20,4 +20,6 @@ app.use(cors(
         origin: origin
     }
 ))
+
+console.log(`CORS set to: ${origin}`)
 app.listen(process.env.PORT, () => console.log(`App running on port : ${process.env.PORT}`));
