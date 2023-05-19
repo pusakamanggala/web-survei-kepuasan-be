@@ -7,7 +7,7 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(bodyParser.json());
-app.use(cors({ origin: "*" }))
+app.use(cors())
 
 const appRoute = require('./routes/routes');
 app.use('/', appRoute);
