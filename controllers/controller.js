@@ -1798,7 +1798,12 @@ module.exports = {
 
                 // generate jwt
                 const jwt = lib.generateAccessToken({ "userId": id, "role": role.toUpperCase() })
-
+                const origin = req.get("Access-Control-Allow-Origin")
+                res.set({
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Access-Control-Allow-Credentials": true,
+                    "Access-Control-Allow-Origin": origin
+                })
                 // set cookie
                 res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, httpOnly: true });
 
