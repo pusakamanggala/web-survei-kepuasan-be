@@ -1,3 +1,4 @@
+require('dotenv').config();
 const config = require('../connection/mysql_connection');
 const mysql = require('mysql2');
 const pool = mysql.createPool(config);
@@ -1798,8 +1799,12 @@ module.exports = {
 
                 // generate jwt
                 const jwt = lib.generateAccessToken({ "userId": id, "role": role.toUpperCase() })
+
+                const secure = (process.env.PROTOCOL === 'HTTP') ? false : true
+                const sameSite = (process.env.PROTOCOL === 'HTTP') ? 'strict' : 'none'
+
                 // set cookie
-                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, httpOnly: true });
+                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, httpOnly: true, sameSite: sameSite, secure: secure });
 
                 return res.send({
                     success: true,
