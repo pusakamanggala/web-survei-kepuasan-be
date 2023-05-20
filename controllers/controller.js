@@ -1804,7 +1804,7 @@ module.exports = {
                 const sameSite = (process.env.PROTOCOL === 'HTTP') ? 'strict' : 'none'
 
                 // set cookie
-                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, httpOnly: true, sameSite: sameSite, secure: secure });
+                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, sameSite: sameSite, secure: secure });
 
                 return res.send({
                     success: true,
