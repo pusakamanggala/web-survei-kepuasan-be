@@ -1800,15 +1800,16 @@ module.exports = {
                 // generate jwt
                 const jwt = lib.generateAccessToken({ "userId": id, "role": role.toUpperCase() })
 
-                const secure = (process.env.PROTOCOL === 'HTTP') ? false : true
-                const sameSite = (process.env.PROTOCOL === 'HTTP') ? 'strict' : 'none'
+                // const secure = (process.env.PROTOCOL === 'HTTP') ? false : true
+                // const sameSite = (process.env.PROTOCOL === 'HTTP') ? 'strict' : 'none'
 
-                // set cookie
-                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, sameSite: 'strict', secure: 'false' });
+                // // set cookie
+                // res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, sameSite: 'strict', secure: 'false' });
 
                 return res.send({
                     success: true,
                     message: 'Success login',
+                    token: jwt,
                     data: result[0]
                 })
             })
