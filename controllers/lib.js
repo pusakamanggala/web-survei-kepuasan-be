@@ -55,9 +55,9 @@ module.exports = {
             query += `WHEN nim = '${element.nim}' THEN '${element.tahun_kelulusan}' `
         })
 
-        query += "ELSE tahun_kelulusan END WHERE nim IN "
+        query += "ELSE tahun_kelulusan END WHERE nim IN ("
         arrJson.forEach((element, i) => {
-            query += (i == arrJson.length - 1) ? `'${element.nim}')` : `('${element.nim}', `
+            query += (i === arrJson.length - 1) ? `'${element.nim}')` : `'${element.nim}', `
         })
 
         return query
