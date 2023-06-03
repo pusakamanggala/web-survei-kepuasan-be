@@ -1625,8 +1625,32 @@ module.exports = {
     getSurveyRecap(req, res) {
         const startDate = req.query.startDate
         const endDate = req.query.endDate
+        const role = req.query.role
+        const surveyId = req.query.id
 
-        const query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate}`
+        let query = ""
+        switch (role.toLowerCase()) {
+            case "alumni":
+                query = `SELECT survei_alumni.id_survei_alumni, survei_alumni.periode, hasil_survei_alumni.id_opsi, id_mahasiswa,hasil_survei_alumni.essay,opsi_pertanyaan.opsi FROM survei_alumni JOIN hasil_survei_alumni ON hasil_survei_alumni.id_survei_alumni = survei_alumni.id_survei_alumni JOIN opsi_pertanyaan ON opsi_pertanyaan.id_opsi = hasil_survei_alumni.id_opsi WHERE survei_alumni.id_survei_alumni = '${surveyId}'`
+                break;
+            case "dosen":
+                query = `SELECT
+                survei_dosen.id_survei_dosen,
+                survei_dosen.periode,
+                hasil_survei_dosen.id_opsi,
+                hasil_survei_dosen.id_dosen,
+                hasil_survei_dosen.essay,
+                opsi_pertanyaan.opsi 
+            FROM
+                survei_dosen
+                JOIN hasil_survei_dosen ON hasil_survei_dosen.id_survei_dosen = survei_dosen.id_survei_dosen
+                JOIN opsi_pertanyaan ON opsi_pertanyaan.id_opsi = hasil_survei_dosen.id_opsi 
+            WHERE
+                survei_dosen.id_survei_dosen = '${surveyId}'`
+                break;
+            default:
+                query = `SELECT survei_mahasiswa.id_survei_mahasiswa, kelas.nama_dosen, kelas.id_dosen, survei_mahasiswa.periode, hasil_survei_mahasiswa.id_opsi, hasil_survei_mahasiswa.id_mahasiswa, hasil_survei_mahasiswa.essay FROM survei_mahasiswa JOIN kelas ON survei_mahasiswa.id_kelas = kelas.id_kelas JOIN hasil_survei_mahasiswa ON hasil_survei_mahasiswa.id_survei_mahasiswa = survei_mahasiswa.id_survei_mahasiswa WHERE survei_mahasiswa.start_date >= ${startDate} AND survei_mahasiswa.end_date <= ${endDate}`
+        }
 
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -1654,7 +1678,7 @@ module.exports = {
                 return res.send({
                     success: true,
                     message: 'Fetch data successfully',
-                    data: lib.parsingSurveyRecap(result)
+                    data: lib.parsingSurveyRecap(result, role)
                 })
             })
 

@@ -454,7 +454,7 @@ module.exports = {
         return total
     },
 
-    parsingSurveyRecap(result) {
+    parsingSurveyRecapMhs(result) {
         let temp = {}
         let finalRes = []
         let trackerIdMahasiswaAndSurvey = {}
@@ -601,6 +601,152 @@ module.exports = {
         }
 
         return finalRes
+    },
+
+    parsingSurveyRecapAlumni(result) {
+        let temp = {
+            "periode": "",
+            "idSurveyAlumni": "",
+            hasilRekap: {
+                "dm0KtbQPdK0Pfazv8opf": {
+                    "bobot": 1,
+                    "opsi": "KURANG",
+                    "total": 0,
+                },
+                "21craH0rvALjqlnwcOI6": {
+                    "bobot": 2,
+                    "opsi": "CUKUP",
+                    "total": 0,
+                },
+                "6ULGZb5Vxwy9wdNNhYdc": {
+                    "bobot": 3,
+                    "opsi": "BAIK",
+                    "total": 0,
+                },
+                "z5OHO3jjoYXq4GHXacIR": {
+                    "opsi": "SANGAT BAIK",
+                    "bobot": 4,
+                    "total": 0,
+                },
+                "rnDvcWSJ3ASo3NLe1mg7": {
+                    "opsi": "ESSAY",
+                    "bobot": 0,
+                    "total": 0,
+                    "essay": []
+                },
+                "responden": 0,
+                "totalRespon": 0,
+                "ikm": 0.0
+            }
+        }
+        let responden = {}
+
+        result.forEach(e => {
+            temp["periode"] = e["periode"]
+            temp["idSurveyAlumni"] = e["id_survei_alumni"]
+
+            const currentOption = e["id_opsi"]
+            temp["hasilRekap"][currentOption]["total"] += 1
+
+            if (currentOption === "rnDvcWSJ3ASo3NLe1mg7") {
+                temp["hasilRekap"][currentOption]["essay"].push(e["essay"])
+            } else {
+                temp["hasilRekap"]["totalRespon"] += 1
+            }
+
+            const curretAlumniId = e["id_mahasiswa"]
+            responden[curretAlumniId] = 1
+        });
+
+        for (var key in responden) {
+            if (responden.hasOwnProperty(key)) {
+                temp["hasilRekap"]["responden"]++
+            }
+        }
+
+        temp["hasilRekap"]["ikm"] = this.parsingGlobalIkm(temp["hasilRekap"])
+
+        return temp
+    },
+
+    parsingSurveyRecapDosen(result) {
+        let temp = {
+            "periode": "",
+            "idSurveyDosen": "",
+            hasilRekap: {
+                "dm0KtbQPdK0Pfazv8opf": {
+                    "bobot": 1,
+                    "opsi": "KURANG",
+                    "total": 0,
+                },
+                "21craH0rvALjqlnwcOI6": {
+                    "bobot": 2,
+                    "opsi": "CUKUP",
+                    "total": 0,
+                },
+                "6ULGZb5Vxwy9wdNNhYdc": {
+                    "bobot": 3,
+                    "opsi": "BAIK",
+                    "total": 0,
+                },
+                "z5OHO3jjoYXq4GHXacIR": {
+                    "opsi": "SANGAT BAIK",
+                    "bobot": 4,
+                    "total": 0,
+                },
+                "rnDvcWSJ3ASo3NLe1mg7": {
+                    "opsi": "ESSAY",
+                    "bobot": 0,
+                    "total": 0,
+                    "essay": []
+                },
+                "responden": 0,
+                "totalRespon": 0,
+                "ikm": 0.0
+            }
+        }
+        let responden = {}
+
+        result.forEach(e => {
+            temp["periode"] = e["periode"]
+            temp["idSurveyDosen"] = e["id_survei_dosen"]
+
+            const currentOption = e["id_opsi"]
+            temp["hasilRekap"][currentOption]["total"] += 1
+
+
+            if (currentOption === "rnDvcWSJ3ASo3NLe1mg7") {
+                temp["hasilRekap"][currentOption]["essay"].push(e["essay"])
+            } else {
+                temp["hasilRekap"]["totalRespon"] += 1
+            }
+
+            const curretDosenId = e["id_dosen"]
+            responden[curretDosenId] = 1
+        });
+
+        for (var key in responden) {
+            if (responden.hasOwnProperty(key)) {
+                temp["hasilRekap"]["responden"]++
+            }
+        }
+
+        temp["hasilRekap"]["ikm"] = this.parsingGlobalIkm(temp["hasilRekap"])
+
+        return temp
+    },
+
+    parsingSurveyRecap(result, role) {
+
+        switch (role.toLowerCase()) {
+            case "dosen":
+                return this.parsingSurveyRecapDosen(result)
+            case "alumni":
+                return this.parsingSurveyRecapAlumni(result)
+            default:
+                return this.parsingSurveyRecapMhs(result)
+        }
+
     },
 
     parsingErrorBulkInsert(role, id, err) {
@@ -765,7 +911,7 @@ module.exports = {
         return `https://api.products.aspose.app/cells/conversion/api/Download/${folder}?file=${file}`
     },
 
-    generateRecapFileName(startDate, endDate) {
+    generateRecapFileName(startDate, endDate, role) {
         return `REKAP_SURVEI_${this.convertUnixTimeToLocalTime(startDate)}-${this.convertUnixTimeToLocalTime(endDate)}.xlsx`
     },
 
