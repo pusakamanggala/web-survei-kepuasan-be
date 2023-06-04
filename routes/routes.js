@@ -73,5 +73,6 @@ router.get('/recap/survey/excel', middleware(ONLY_ADMIN), survei.getSurveyRecapE
 router.get('/recap/survey', middleware(ONLY_ADMIN), survei.getSurveyRecap) // /recap/survey?startDate=120380312&endDate=123213
 router.delete('/remove-student', middleware(ONLY_ADMIN), survei.removeStudentFromClass) // /remove-mahasiswa?nim=123123&classId=1230823
 
+router.get('/list-survei/:role', middleware(ONLY_ADMIN), survei.listSurveyWithDateRange)
 module.exports = router;
 

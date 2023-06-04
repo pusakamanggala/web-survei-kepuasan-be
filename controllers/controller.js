@@ -1963,4 +1963,55 @@ module.exports = {
             connection.release();
         })
     },
+
+    listSurveyWithDateRange(req, res) {
+        const startDate = req.query.startDate
+        const endDate = req.query.endDate
+        const role = req.params.role
+
+        let query = ""
+        switch (role.toLowerCase()) {
+            case "alumni":
+                query = `SELECT id_survei_alumni, judul_survei, detail_survei, start_date, end_date, periode FROM survei_alumni WHERE start_date >= ${startDate} AND end_date <= ${endDate}`
+                break;
+            case "dosen":
+                query = `SELECT id_survei_dosen, judul_survei, detail_survei, start_date, end_date, periode FROM survei_dosen WHERE start_date >= ${startDate} AND end_date <= ${endDate}`
+                break;
+            default:
+                query = `SELECT id_survei_mahasiswa, judul_survei, detail_survei, start_date, end_date, periode FROM survei_mahasiswa WHERE start_date >= ${startDate} AND end_date <= ${endDate}`
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Fetch data successfully',
+                    data: result
+                })
+            })
+
+            connection.release();
+        })
+    }
 }
