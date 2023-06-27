@@ -113,6 +113,43 @@ module.exports = {
         return query
     },
 
+    generateBulkQueryAddMahasiswaToKelasExcel(arr) {
+        let query = "INSERT INTO kontrak_matkul (id_kontrak, id_kelas, id_mahasiswa) VALUES "
+        arr.forEach((element, index) => {
+            const value = (index === arr.length - 1) ? `('${this.generateRandomString(20)}', '${element["kelas"]}', '${element["nim"]}')` : `('${this.generateRandomString(20)}', '${element["kelas"]}', '${element["nim"]}'), `
+            query += value
+        })
+
+        return query
+    },
+
+    readExcelFile(json) {
+        return json.map(element => {
+            return {
+                nim: element.nim.toString(),
+                kelas: element.kelas.toString(),
+            }
+        })
+    },
+
+    readClasses(arr) {
+        arr = arr.map(v => v.kelas)
+        return new Set(arr);
+    },
+
+    generateQueryToCheckStudentClass(classes) {
+        var query = "SELECT id_mahasiswa, id_kelas FROM kontrak_matkul WHERE id_kelas IN ("
+        index = 0
+        classes.forEach((element) => {
+            const value = (index === (classes.size - 1)) ? `'${element}')` : `'${element}', `
+            query += value
+            index++
+        })
+
+
+        return query
+    },
+
     generateQueryForGetSurvey(role, time, nim) {
         switch (role) {
             case 'dosen':

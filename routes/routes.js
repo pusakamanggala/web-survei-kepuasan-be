@@ -38,6 +38,7 @@ router.put('/alumni/:id', middleware(ONLY_ADMIN), survei.updateAlumni)
 
 router.post('/matkul', middleware(ONLY_ADMIN), survei.newMatkul)
 router.post('/kelas', middleware(ONLY_ADMIN), survei.newKelas)
+router.post('/insert-mahasiswa/bulk', middleware(ONLY_ADMIN), upload.single('file'), survei.bulkInsertMahasiswaKelas)
 router.post('/insert-mahasiswa', middleware(ONLY_ADMIN), survei.addMahasiswaToKelas) // add mahasiswa ke kelas
 
 router.get('/kelas/suggest', middleware(ONLY_ADMIN), survei.getKelasWithSuggest)

@@ -2075,5 +2075,95 @@ module.exports = {
 
             connection.release();
         })
-    }
+    },
+
+    bulkInsertMahasiswaKelas(req, res) {
+        if (req.file?.filename == null || req.file?.filename === undefined) {
+            return res.status(400).json({
+                succes: false,
+                message: "no file"
+            })
+        }
+
+        const filePath = "uploads/" + req.file.filename
+
+        const excelData = excelToJson({
+            sourceFile: filePath,
+            header: {
+                rows: 1
+            },
+            columnToKey: {
+                "*": "{{columnHeader}}"
+            }
+        })
+
+        const data = lib.readExcelFile(excelData.Sheet1)
+        const classes = lib.readClasses(data)
+        const checkQuery = lib.generateQueryToCheckStudentClass(classes)
+
+        fs.unlinkSync(filePath)
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(checkQuery, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.affectedRows === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `there is no class with id ${idKelas}`
+                    })
+                }
+
+                let parsed = []
+                for (let i = 0; i < data.length; i++) {
+                    let found = false;
+                    for (let j = 0; j < result.length; j++) {
+                        if (data[i].id_mahasiswa === result[j].nim && data[i].id_kelas === result[j].kelas) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        parsed.push(data[i]);
+                    }
+                }
+
+
+                if (parsed.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'Your record has been saved successfully',
+                    })
+                }
+
+                const insertQuery = lib.generateBulkQueryAddMahasiswaToKelasExcel(parsed)
+
+                connection.query(insertQuery, function (err, result) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    return res.send({
+                        success: true,
+                        message: 'Your record has been saved successfully',
+                    })
+                })
+            })
+        })
+    },
 }
