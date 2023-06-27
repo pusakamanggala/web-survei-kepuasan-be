@@ -61,6 +61,8 @@ module.exports = {
         let page = req.query.page
         let sortBy = req.query.sortBy
         let orderBy = req.query.orderBy
+        let all = req.query.all
+        let status = req.query.status
 
         if (limit === undefined) {
             limit = DEFAULT_LIMIT
@@ -87,14 +89,30 @@ module.exports = {
             };
 
             let totalRecords = 0
-            connection.query("select count(*) from dosen WHERE status= 'AKTIF'", function (err, res) {
-                totalRecords = parseInt(res[0]["count(*)"])
-            })
+            if (all.toLowerCase() !== "true") {
+                connection.query("select count(*) from dosen WHERE status= 'AKTIF'", function (err, res) {
+                    totalRecords = parseInt(res[0]["count(*)"])
+                })
+            }
 
+            let query = ""
+            if (all.toLowerCase() === "true") {
+                switch (status.toLowerCase()) {
+                    case "aktif":
+                        query = "SELECT nama, nip, telepon, status FROM dosen where status = 'aktif'"
+                        break;
+                    case "nonaktif":
+                        query = "SELECT nama, nip, telepon, status FROM dosen where status = 'nonaktif'"
+                        break;
+                    default:
+                        query = "SELECT nama, nip, telepon, status FROM dosen"
+                        break;
+                }
+            } else {
+                query = lib.fullQueryStringBuilder("dosen", "nama, nip, telepon, status", orderBy, sortBy, "WHERE status = 'AKTIF'", lib.getPaging(limit, page))
+            }
 
-            const fullQuery = lib.fullQueryStringBuilder("dosen", "nama, nip, telepon", orderBy, sortBy, "WHERE status = 'AKTIF'", lib.getPaging(limit, page))
-            console.log(fullQuery)
-            connection.query(fullQuery, function (err, result) {
+            connection.query(query, function (err, result) {
                 if (err) {
                     return res.status(500).json({
                         success: false,
@@ -106,6 +124,14 @@ module.exports = {
                     return res.send({
                         success: true,
                         message: 'There is no record'
+                    })
+                }
+
+                if (all.toLowerCase() === "true") {
+                    return res.send({
+                        success: true,
+                        message: 'Fetch data successfully',
+                        data: result,
                     })
                 }
 
@@ -430,6 +456,7 @@ module.exports = {
         let limit = req.query.limit
         let page = req.query.page
         let angkatan = req.query.angkatan
+        let all = req.query.all
 
         if (sortBy === undefined) {
             sortBy = DEFAULT_SORT
@@ -472,6 +499,10 @@ module.exports = {
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon", orderBy, sortBy, `WHERE status = "AKTIF"`, lib.getPaging(limit, page))
             }
 
+            if (all.toLowerCase() === "true") {
+                query = "SELECT nama, nim, angkatan, status, telepon FROM mahasiswa WHERE status = 'AKTIF'"
+            }
+
             connection.query(query, [orderBy, sortBy], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -484,6 +515,14 @@ module.exports = {
                     return res.send({
                         success: true,
                         message: 'There is no record'
+                    })
+                }
+
+                if (all.toLowerCase() === "true") {
+                    return res.send({
+                        success: true,
+                        message: 'Fetch data successfully',
+                        data: result,
                     })
                 }
 
@@ -623,6 +662,7 @@ module.exports = {
         let limit = req.query.limit
         let page = req.query.page
         let angkatan = req.query.angkatan
+        let all = req.query.all
 
         if (limit === undefined) {
             limit = DEFAULT_LIMIT
@@ -665,6 +705,10 @@ module.exports = {
                 query = lib.fullQueryStringBuilder("mahasiswa", "nama, nim, angkatan, status, telepon, tahun_kelulusan", orderBy, sortBy, `WHERE status = "ALUMNI"`, lib.getPaging(limit, page))
             }
 
+            if (all.toLowerCase() === "true") {
+                query = "SELECT nama, nim, angkatan, status, telepon, tahun_kelulusan FROM mahasiswa where status = 'ALUMNI'"
+            }
+
             connection.query(query, [orderBy, sortBy], function (err, result) {
                 if (err) {
                     return res.status(500).json({
@@ -680,6 +724,13 @@ module.exports = {
                     })
                 }
 
+                if (all.toLowerCase() === "true") {
+                    return res.send({
+                        success: true,
+                        message: 'Fetch data successfully',
+                        data: result,
+                    })
+                }
 
                 return res.send({
                     success: true,
