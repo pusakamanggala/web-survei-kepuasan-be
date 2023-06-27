@@ -59,6 +59,8 @@ module.exports = {
     getAllDosen(req, res) {
         let limit = req.query.limit
         let page = req.query.page
+        let sortBy = req.query.sortBy
+        let orderBy = req.query.orderBy
 
         if (limit === undefined) {
             limit = DEFAULT_LIMIT
@@ -66,6 +68,14 @@ module.exports = {
 
         if (page === undefined) {
             page = DEFAULT_PAGE
+        }
+
+        if (orderBy === undefined) {
+            orderBy = "nip"
+        }
+
+        if (sortBy === undefined) {
+            sortBy = "ASC"
         }
 
         pool.getConnection(function (err, connection) {
@@ -81,9 +91,10 @@ module.exports = {
                 totalRecords = parseInt(res[0]["count(*)"])
             })
 
-            const query = 'SELECT nama, nip, telepon FROM dosen WHERE status = "AKTIF"';
-            const queryWithPaging = `${query} ${lib.getPaging(limit, page)}`
-            connection.query(queryWithPaging, function (err, result) {
+
+            const fullQuery = lib.fullQueryStringBuilder("dosen", "nama, nip, telepon", orderBy, sortBy, "WHERE status = 'AKTIF'", lib.getPaging(limit, page))
+            console.log(fullQuery)
+            connection.query(fullQuery, function (err, result) {
                 if (err) {
                     return res.status(500).json({
                         success: false,
@@ -1828,7 +1839,7 @@ module.exports = {
                 // const sameSite = (process.env.PROTOCOL === 'HTTP') ? 'strict' : 'none'
 
                 // // set cookie
-                // res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, sameSite: 'strict', secure: 'false' });
+                res.cookie('Authorization', jwt, { maxAge: MAX_AGE_COOKIE, sameSite: 'strict', secure: 'false' });
 
                 return res.send({
                     success: true,
