@@ -2166,4 +2166,75 @@ module.exports = {
             })
         })
     },
+
+    resetPassword(req, res) {
+        const role = req.params.role
+        let { id, oldPassword, newPassword } = req.body
+
+        let query = ""
+        let updateQuery = ""
+        switch (role.toLowerCase()) {
+            case "alumni":
+                query = `SELECT nim, password FROM mahasiswa where status = "alumni" and nim = '${id}'`
+                updateQuery = `UPDATE mahasiswa SET password = ? where nim = ?`
+                break;
+            case "dosen":
+                query = `SELECT nip, password FROM dosen where status = "aktif" and nip = '${id}'`
+                updateQuery = `UPDATE dosen SET password = ? where nip = ?`
+                break;
+            default:
+                query = `SELECT nim, password FROM mahasiswa where status = "aktif" and nim = '${id}'`
+                updateQuery = `UPDATE mahasiswa SET password = ? where nim = ?`
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            connection.query(query, function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                const isValid = lib.comparePassword(oldPassword, result[0]["password"])
+                if (!isValid) {
+                    return res.send({
+                        success: false,
+                        message: 'wrong password'
+                    })
+                }
+
+                const newPasswordHash = lib.hashPassword(newPassword)
+
+                connection.query(updateQuery, [newPasswordHash, id], function (err, result) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    return res.send({
+                        success: true,
+                        message: 'Update data successfully',
+                    })
+                })
+            })
+            connection.release();
+        })
+    },
 }

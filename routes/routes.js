@@ -75,5 +75,6 @@ router.get('/recap/survey', middleware(ONLY_ADMIN), survei.getSurveyRecap) // /r
 router.delete('/remove-student', middleware(ONLY_ADMIN), survei.removeStudentFromClass) // /remove-mahasiswa?nim=123123&classId=1230823
 
 router.get('/list-survei/:role', middleware(ONLY_ADMIN), survei.listSurveyWithDateRange)
+router.post('/reset-password/:role', middleware(ALL_ROLE), survei.resetPassword)
 module.exports = router;
 
