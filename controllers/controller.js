@@ -353,7 +353,7 @@ module.exports = {
                 if (err) {
                     return res.status(500).json({
                         success: false,
-                        message: err
+                        message: lib.parsingErrorBulkInsert("Dosen", "NIP", err)
                     })
                 };
 
@@ -595,7 +595,7 @@ module.exports = {
                 if (err) {
                     return res.status(500).json({
                         success: false,
-                        message: err
+                        message: lib.parsingErrorBulkInsert("Mahasiswa", "NIM", err)
                     })
                 };
 
