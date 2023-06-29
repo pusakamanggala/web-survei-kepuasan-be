@@ -2126,11 +2126,12 @@ module.exports = {
                     })
                 }
 
+
                 let parsed = []
                 for (let i = 0; i < data.length; i++) {
                     let found = false;
                     for (let j = 0; j < result.length; j++) {
-                        if (data[i].id_mahasiswa === result[j].nim && data[i].id_kelas === result[j].kelas) {
+                        if (data[i].nim === result[j].id_mahasiswa && data[i].kelas === result[j].id_kelas) {
                             found = true;
                             break;
                         }
@@ -2149,7 +2150,6 @@ module.exports = {
                 }
 
                 const insertQuery = lib.generateBulkQueryAddMahasiswaToKelasExcel(parsed)
-
                 connection.query(insertQuery, function (err, result) {
                     if (err) {
                         return res.status(500).json({
