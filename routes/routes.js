@@ -76,5 +76,8 @@ router.delete('/remove-student', middleware(ONLY_ADMIN), survei.removeStudentFro
 
 router.get('/list-survei/:role', middleware(ONLY_ADMIN), survei.listSurveyWithDateRange)
 router.post('/reset-password/:role', middleware(ALL_ROLE), survei.resetPassword)
+router.post('/hard-reset-password/:role', middleware(ONLY_ADMIN), survei.hardResetPassword)
+router.get('/students/entry-year', middleware(ONLY_ADMIN), survei.studentBaseOnEntryYear)
+
 module.exports = router;
 

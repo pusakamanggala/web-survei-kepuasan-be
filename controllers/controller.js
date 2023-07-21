@@ -2237,4 +2237,117 @@ module.exports = {
             connection.release();
         })
     },
+
+    hardResetPassword(req, res) {
+        const role = req.params.role
+        let { id } = req.body
+
+        let updateQuery = ""
+        switch (role.toLowerCase()) {
+            case "alumni":
+                updateQuery = `UPDATE mahasiswa SET password = ? where nim = ?`
+                break;
+            case "dosen":
+                updateQuery = `UPDATE dosen SET password = ? where nip = ?`
+                break;
+            default:
+                updateQuery = `UPDATE mahasiswa SET password = ? where nim = ?`
+        }
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            const newPasswordHash = lib.hashPassword(id)
+
+
+            connection.query(updateQuery, [newPasswordHash, id], function (err, result) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (result.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                return res.send({
+                    success: true,
+                    message: 'Update data successfully',
+                })
+            })
+            connection.release();
+        })
+    },
+
+    studentBaseOnEntryYear(req, res) {
+
+        let queryMhs = `select angkatan, count(*) as total from mahasiswa where status = "AKTIF" GROUP BY angkatan`
+
+        let queryAlumni = `select angkatan, count(*) as total from mahasiswa where status = "ALUMNI" GROUP BY angkatan`
+
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                return res.status(500).json({
+                    success: false,
+                    message: err
+                })
+            };
+
+            var finalRes = {}
+
+            connection.query(queryMhs, function (err, resultMHS) {
+                if (err) {
+                    return res.status(500).json({
+                        success: false,
+                        message: err
+                    })
+                };
+
+                if (resultMHS.length === 0) {
+                    return res.send({
+                        success: true,
+                        message: 'There is no record with that query'
+                    })
+                }
+
+                finalRes["Mahasiswa"] = resultMHS
+
+                connection.query(queryAlumni, function (err, resultAlm) {
+                    if (err) {
+                        return res.status(500).json({
+                            success: false,
+                            message: err
+                        })
+                    };
+
+                    finalRes["Alumni"] = resultAlm
+
+
+                    return res.send({
+                        success: true,
+                        message: 'Fetch data successfully',
+                        data: finalRes,
+                    })
+                })
+            })
+            connection.release();
+        })
+    },
 }
