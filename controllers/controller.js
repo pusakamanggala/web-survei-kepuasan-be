@@ -2320,14 +2320,9 @@ module.exports = {
                     })
                 };
 
-                if (resultMHS.length === 0) {
-                    return res.send({
-                        success: true,
-                        message: 'There is no record with that query'
-                    })
+                if (resultMHS.length !== 0) {
+                    finalRes["Mahasiswa"] = resultMHS
                 }
-
-                finalRes["Mahasiswa"] = resultMHS
 
                 connection.query(queryAlumni, function (err, resultAlm) {
                     if (err) {
@@ -2337,8 +2332,17 @@ module.exports = {
                         })
                     };
 
-                    finalRes["Alumni"] = resultAlm
+                    if (resultAlm.length !== 0) {
+                        finalRes["Alumni"] = resultAlm
+                    }
 
+                    var allEmptyRes = Object.keys(finalRes).length === 0
+                    if (allEmptyRes) {
+                        return res.status(404).json({
+                            success: true,
+                            message: 'There is no record with that query'
+                        })
+                    }
 
                     return res.send({
                         success: true,
